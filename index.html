@@ -1,0 +1,113 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <link rel="icon" type="image/svg+xml" href="/assets/images/favicon.ico" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>BuTaKa | Buku Tamu Kantor</title>
+
+  <!-- Library / Plugin Css Build -->
+  <link rel="stylesheet" href="/assets/css/core/libs.min.css" />
+
+  <!-- Aos Animation Css -->
+  <link rel="stylesheet" href="/assets/vendor/aos/dist/aos.css" />
+
+  <!-- Hope Ui Design System Css -->
+  <link rel="stylesheet" href="/assets/css/hope-ui.min.css?v=2.0.0" />
+
+  <!-- Custom Css -->
+  <link rel="stylesheet" href="/assets/css/custom.min.css?v=2.0.0" />
+
+  <!-- Dark Css -->
+  <link rel="stylesheet" href="/assets/css/dark.min.css" />
+
+  <!-- Customizer Css -->
+  <link rel="stylesheet" href="/assets/css/customizer.min.css" />
+
+  <!-- RTL Css -->
+  <link rel="stylesheet" href="/assets/css/rtl.min.css" />
+
+  <!-- Font Awesome -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" />
+
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+
+  <!-- Google Fonts -->
+  <link
+    href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap"
+    rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght@100..700&display=swap"
+    rel="stylesheet" />
+
+  <!-- Animation -->
+  <link href="https://unpkg.com/aos@2.3.1/dist/aos.css" rel="stylesheet" />
+
+  <script>
+    // Initial Theme Check - Prevent Flash
+    if (localStorage.getItem('theme') === 'dark' || (!localStorage.getItem('theme') && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+      document.documentElement.classList.add('dark');
+    } else {
+      document.documentElement.classList.remove('dark');
+    }
+
+    tailwind.config = {
+      darkMode: "class",
+      theme: {
+        extend: {
+          colors: {
+            primary: {
+              50: "#f5f7ff",
+              100: "#ebf0fe",
+              200: "#dae3fd",
+              300: "#c0cdfb",
+              400: "#9baaf7",
+              500: "#6366f1", // Indigo 500
+              600: "#4f46e5",
+              700: "#4338ca",
+              800: "#3730a3",
+              900: "#312e81",
+            },
+            secondary: '#64748b',
+            background: {
+              light: "#f8fafc",
+              dark: "#0f172a", // Slate 900
+            },
+            surface: {
+              light: "#ffffff",
+              dark: "#1e293b", // Slate 800
+            },
+          },
+          fontFamily: {
+            display: ["Outfit", "sans-serif"],
+            body: ["Plus Jakarta Sans", "sans-serif"],
+          },
+          boxShadow: {
+            glass: "0 8px 32px 0 rgba(31, 38, 135, 0.07)",
+            "glass-dark": "0 8px 32px 0 rgba(0, 0, 0, 0.3)",
+          },
+        },
+      },
+    };
+  </script>
+</head>
+
+<body class="">
+  <div id="app"></div>
+  <script type="module" src="/src/main.ts"></script>
+
+  <!-- Library Bundle Script -->
+  <script src="/assets/js/core/libs.min.js"></script>
+
+  <!-- External Library Bundle Script -->
+  <script src="/assets/js/core/external.min.js"></script>
+
+  <!-- AOS Animation Plugin-->
+  <script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
+
+  <!-- App Script -->
+  <script src="/assets/js/hope-ui.js" defer></script>
+</body>
+
+</html>
