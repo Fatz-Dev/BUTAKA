@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { computed, ref, onMounted } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
+import { useAuthStore } from '../../stores/auth'
 
 const props = defineProps<{
   role: 'admin' | 'receptionist'
@@ -8,6 +9,7 @@ const props = defineProps<{
 
 const router = useRouter()
 const route = useRoute()
+const authStore = useAuthStore()
 
 // Theme mode state
 const currentTheme = ref<'auto' | 'dark' | 'light'>('light')
@@ -88,7 +90,8 @@ const isSubmenuActive = (item: any) => {
   return item.submenu.some((sub: any) => route.path === sub.path)
 }
 
-const logout = () => {
+const logout = async () => {
+  await authStore.logout()
   router.push('/login')
 }
 </script>
@@ -97,34 +100,16 @@ const logout = () => {
   <!-- Sidebar -->
   <aside class="sidebar sidebar-default sidebar-white sidebar-base navs-rounded-all">
     <div class="sidebar-header d-flex align-items-center justify-content-start">
-      <router-link to="/" class="navbar-brand">
+      <router-link to="/" class="navbar-brand d-flex align-items-center">
         <div class="logo-main">
           <div class="logo-normal">
-            <svg class="icon-30" viewBox="0 0 30 30" fill="none" xmlns="http://www.w3.org/2000/svg">
-              <rect x="-0.757324" y="19.2427" width="28" height="4" rx="2" transform="rotate(-45 -0.757324 19.2427)"
-                fill="currentColor" />
-              <rect x="7.72803" y="27.728" width="28" height="4" rx="2" transform="rotate(-45 7.72803 27.728)"
-                fill="currentColor" />
-              <rect x="10.5366" y="16.3945" width="16" height="4" rx="2" transform="rotate(45 10.5366 16.3945)"
-                fill="currentColor" />
-              <rect x="10.5562" y="-0.556152" width="28" height="4" rx="2" transform="rotate(45 10.5562 -0.556152)"
-                fill="currentColor" />
-            </svg>
+            <img src="/assets/images/logo-new.png" alt="BuTaKa Logo" style="height: 40px; width: 40px;" />
           </div>
           <div class="logo-mini">
-            <svg class="icon-30" viewBox="0 0 30 30" fill="none" xmlns="http://www.w3.org/2000/svg">
-              <rect x="-0.757324" y="19.2427" width="28" height="4" rx="2" transform="rotate(-45 -0.757324 19.2427)"
-                fill="currentColor" />
-              <rect x="7.72803" y="27.728" width="28" height="4" rx="2" transform="rotate(-45 7.72803 27.728)"
-                fill="currentColor" />
-              <rect x="10.5366" y="16.3945" width="16" height="4" rx="2" transform="rotate(45 10.5366 16.3945)"
-                fill="currentColor" />
-              <rect x="10.5562" y="-0.556152" width="28" height="4" rx="2" transform="rotate(45 10.5562 -0.556152)"
-                fill="currentColor" />
-            </svg>
+            <img src="/assets/images/logo-new.png" alt="BuTaKa Logo" style="height: 30px; width: 30px;" />
           </div>
         </div>
-        <h4 class="logo-title">BuTaKa</h4>
+        <h3 class="logo-title ms-2 mb-0" style="font-weight: 700; font-size: 1.5rem;">BuTaKa</h3>
       </router-link>
       <div class="sidebar-toggle" data-toggle="sidebar" data-active="true">
         <i class="icon">
@@ -169,8 +154,9 @@ const logout = () => {
       <!-- Nav Start -->
       <nav class="nav navbar navbar-expand-lg navbar-light iq-navbar">
         <div class="container-fluid navbar-inner">
-          <router-link to="/" class="navbar-brand">
-            <h4 class="logo-title">BuTaKa</h4>
+          <router-link to="/" class="navbar-brand d-flex align-items-center d-lg-none">
+            <img src="/assets/images/logo-new.png" alt="BuTaKa Logo" class="icon-30 me-2" />
+            <h4 class="logo-title mb-0">BuTaKa</h4>
           </router-link>
           <div class="sidebar-toggle" data-toggle="sidebar" data-active="true">
             <i class="icon">
@@ -197,19 +183,15 @@ const logout = () => {
               <li class="nav-item dropdown">
                 <a class="py-0 nav-link d-flex align-items-center" href="#" id="navbarDropdown" role="button"
                   data-bs-toggle="dropdown" aria-expanded="false">
-                  <img src="/assets/images/avatars/01.png" alt="User-Profile"
+                  <img src="/assets/images/avatars/admin-profile.png" alt="User-Profile"
                     class="theme-color-default-img img-fluid avatar avatar-50 avatar-rounded"
-                    onerror="this.style.display='none'" />
+                    style="object-fit: cover; object-position: top;" onerror="this.style.display='none'" />
                   <div class="caption ms-3 d-none d-md-block">
                     <h6 class="mb-0 caption-title">{{ role === 'admin' ? 'Admin' : 'Resepsionis' }}</h6>
                     <p class="mb-0 caption-sub-title">{{ role === 'admin' ? 'Administrator' : 'Receptionist' }}</p>
                   </div>
                 </a>
-                <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="navbarDropdown">
-                  <li><a class="dropdown-item" href="#">Profile</a></li>
-                  <li>
-                    <hr class="dropdown-divider" />
-                  </li>
+                <ul class="dropdown-menu dropdown-menu-end bg-white" aria-labelledby="navbarDropdown">
                   <li><a class="dropdown-item" href="#" @click.prevent="logout">Logout</a></li>
                 </ul>
               </li>
@@ -332,4 +314,17 @@ const logout = () => {
 
 <style scoped>
 /* Minimal overrides - using Hope UI styles from index.html */
+
+/* Fix: Ensure navbar-collapse is always visible on desktop */
+@media (min-width: 992px) {
+  .navbar-collapse {
+    display: flex !important;
+    visibility: visible !important;
+  }
+}
+
+/* Ensure dropdown menu displays properly */
+.nav-item.dropdown .dropdown-menu {
+  z-index: 1050;
+}
 </style>

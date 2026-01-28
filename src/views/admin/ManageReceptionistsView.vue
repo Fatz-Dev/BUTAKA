@@ -1,31 +1,12 @@
 <script setup lang="ts">
+import { ref, computed, onMounted } from 'vue'
 import DashboardLayout from '../../components/layout/DashboardLayout.vue'
-import { ref, computed } from 'vue'
+import { useUsersStore } from '../../stores/users'
+import Swal from 'sweetalert2'
 
-// Receptionist data
-const receptionists = ref([
-  {
-    id: 1,
-    name: 'Budi Santoso',
-    username: 'budisantoso',
-    email: 'budi@example.com',
-    phone: '081234567890'
-  },
-  {
-    id: 2,
-    name: 'Siti Aminah',
-    username: 'sitiaminah',
-    email: 'siti@example.com',
-    phone: '089876543210'
-  },
-  {
-    id: 3,
-    name: 'Ahmad Hidayat',
-    username: 'ahmadhidayat',
-    email: 'ahmad@example.com',
-    phone: '082345678901'
-  }
-])
+// Users store
+const usersStore = useUsersStore()
+const receptionists = computed(() => usersStore.getReceptionists())
 
 // Search functionality
 const searchQuery = ref('')
@@ -33,54 +14,121 @@ const filteredReceptionists = computed(() => {
   if (!searchQuery.value) return receptionists.value
   const query = searchQuery.value.toLowerCase()
   return receptionists.value.filter(rep =>
-    rep.name.toLowerCase().includes(query) ||
-    rep.username.toLowerCase().includes(query) ||
-    rep.email.toLowerCase().includes(query)
+    (rep.name && rep.name.toLowerCase().includes(query)) ||
+    (rep.username && rep.username.toLowerCase().includes(query)) ||
+    (rep.email && rep.email.toLowerCase().includes(query))
   )
 })
 
-// Modal state
-const isModalOpen = ref(false)
-const isDeleteModalOpen = ref(false)
-const selectedReceptionist = ref<{ id: number; name: string } | null>(null)
+// Confirm delete with SweetAlert
+const confirmDelete = async (id: number, nama: string) => {
+  const result = await Swal.fire({
+    title: 'Hapus Resepsionis?',
+    html: `<p>Anda yakin ingin menghapus <b>${nama}</b>?</p>`,
+    icon: 'warning',
+    showCancelButton: true,
+    confirmButtonColor: '#dc3545',
+    cancelButtonColor: '#6b7280',
+    confirmButtonText: '<i class="fa fa-trash me-2"></i> Ya, Hapus',
+    cancelButtonText: 'Batal'
+  })
 
-// New receptionist form
-const newRep = ref({
-  name: '',
-  username: '',
-  email: '',
-  phone: '',
-  password: ''
+  if (result.isConfirmed) {
+    const deleteResult = await usersStore.deleteUser(id)
+    if (deleteResult.success) {
+      Swal.fire({
+        title: 'Berhasil!',
+        text: `${nama} telah dihapus.`,
+        icon: 'success',
+        confirmButtonColor: '#3a57e8',
+        timer: 2000,
+        timerProgressBar: true
+      })
+    } else {
+      Swal.fire({
+        title: 'Gagal!',
+        text: deleteResult.message || 'Terjadi kesalahan saat menghapus.',
+        icon: 'error',
+        confirmButtonColor: '#3a57e8'
+      })
+    }
+  }
+}
+
+// Fetch users on mount
+onMounted(async () => {
+  await usersStore.fetchUsers()
 })
 
-// Add receptionist
-const addReceptionist = () => {
-  receptionists.value.push({
-    id: Date.now(),
-    name: newRep.value.name,
-    username: newRep.value.username,
-    email: newRep.value.email,
-    phone: newRep.value.phone
-  })
-  isModalOpen.value = false
-  newRep.value = { name: '', username: '', email: '', phone: '', password: '' }
-}
+// Edit functionality
+const showEditModal = ref(false)
+const isSubmitting = ref(false)
+const editForm = ref({
+  id: 0,
+  name: '',
+  email: '',
+  password: '', // Optional
+  is_active: 1
+})
 
-// Confirm delete
-const confirmDelete = (id: number, name: string) => {
-  selectedReceptionist.value = { id, name }
-  isDeleteModalOpen.value = true
-}
-
-// Delete receptionist
-const deleteReceptionist = () => {
-  if (selectedReceptionist.value) {
-    receptionists.value = receptionists.value.filter(
-      rep => rep.id !== selectedReceptionist.value!.id
-    )
+const openEditModal = (rep: any) => {
+  editForm.value = {
+    id: rep.id,
+    name: rep.name,
+    email: rep.email,
+    password: '',
+    is_active: rep.is_active ? 1 : 0
   }
-  isDeleteModalOpen.value = false
-  selectedReceptionist.value = null
+  showEditModal.value = true
+}
+
+const closeEditModal = () => {
+  showEditModal.value = false
+  editForm.value = {
+    id: 0,
+    name: '',
+    email: '',
+    password: '',
+    is_active: 1
+  }
+}
+
+const handleUpdate = async () => {
+  isSubmitting.value = true
+
+  // Clean up data
+  const updateData: any = {
+    name: editForm.value.name,
+    email: editForm.value.email,
+    is_active: editForm.value.is_active
+  }
+
+  // Only send password if filled
+  if (editForm.value.password) {
+    updateData.password = editForm.value.password
+  }
+
+  const result = await usersStore.updateUser(editForm.value.id, updateData)
+  isSubmitting.value = false
+
+  if (result.success) {
+    // Show success
+    Swal.fire({
+      icon: 'success',
+      title: 'Berhasil',
+      text: 'Data resepsionis berhasil diperbarui',
+      timer: 1500,
+      showConfirmButton: false
+    })
+    closeEditModal()
+    await usersStore.fetchUsers() // Refresh data
+  } else {
+    Swal.fire({
+      icon: 'error',
+      title: 'Gagal',
+      text: result.message || 'Gagal memperbarui data'
+    })
+  }
 }
 </script>
 
@@ -122,16 +170,24 @@ const deleteReceptionist = () => {
               </div>
             </div>
 
+            <!-- Loading State -->
+            <div v-if="usersStore.loading" class="text-center py-4">
+              <div class="spinner-border text-primary" role="status">
+                <span class="visually-hidden">Loading...</span>
+              </div>
+              <p class="text-muted mt-2">Memuat data...</p>
+            </div>
+
             <!-- Table -->
-            <div class="table-responsive">
+            <div v-else class="table-responsive">
               <table class="table table-striped table-hover mb-0">
                 <thead>
                   <tr>
                     <th width="5%">No</th>
-                    <th width="25%">Nama Lengkap</th>
-                    <th width="20%">Username</th>
-                    <th width="20%">Email</th>
-                    <th width="15%">No. HP</th>
+                    <th width="25%">Nama</th>
+                    <th width="25%">Email</th>
+                    <th width="15%">Role</th>
+                    <th width="15%" class="text-center">Status</th>
                     <th width="15%" class="text-center">Aksi</th>
                   </tr>
                 </thead>
@@ -139,14 +195,21 @@ const deleteReceptionist = () => {
                   <tr v-for="(rep, index) in filteredReceptionists" :key="rep.id">
                     <td>{{ index + 1 }}</td>
                     <td class="fw-semibold">{{ rep.name }}</td>
-                    <td>{{ rep.username }}</td>
                     <td>{{ rep.email }}</td>
-                    <td>{{ rep.phone }}</td>
+                    <td>
+                      <span class="badge rounded-pill" :class="rep.role === 'admin' ? 'bg-primary' : 'bg-info'">
+                        {{ rep.role }}
+                      </span>
+                    </td>
                     <td class="text-center">
-                      <router-link :to="`/admin/receptionists/edit/${rep.id}`" class="btn btn-sm btn-warning me-1"
-                        title="Edit">
-                        <i class="fa-solid fa-edit"></i>
-                      </router-link>
+                      <span class="badge rounded-pill" :class="rep.is_active ? 'bg-success' : 'bg-danger'">
+                        {{ rep.is_active ? 'Aktif' : 'Non-Aktif' }}
+                      </span>
+                    </td>
+                    <td class="text-center">
+                      <button @click="openEditModal(rep)" class="btn btn-sm btn-warning me-2" title="Edit">
+                        <i class="fa-solid fa-pen-to-square text-white"></i>
+                      </button>
                       <button @click="confirmDelete(rep.id, rep.name)" class="btn btn-sm btn-danger" title="Hapus">
                         <i class="fa-solid fa-trash"></i>
                       </button>
@@ -166,34 +229,52 @@ const deleteReceptionist = () => {
       </div>
     </div>
 
-    <!-- Delete Confirmation Modal -->
-    <div v-if="isDeleteModalOpen" class="modal-backdrop fade show" @click="isDeleteModalOpen = false"></div>
-    <div v-if="isDeleteModalOpen" class="modal fade show d-block" tabindex="-1">
-      <div class="modal-dialog modal-dialog-centered">
-        <div class="modal-content">
-          <div class="modal-header">
-            <h5 class="modal-title">
-              <i class="fa-solid fa-exclamation-triangle text-warning me-2"></i>
-              Konfirmasi Hapus
-            </h5>
-            <button type="button" class="btn-close" @click="isDeleteModalOpen = false"></button>
+
+    <!-- Edit Modal (Simple Overlay) -->
+    <div v-if="showEditModal" class="modal fade show d-block" tabindex="-1" style="background: rgba(0,0,0,0.5)">
+      <div class="modal-dialog modal-lg">
+        <div class="modal-content dark:bg-[#222738] dark:text-white">
+          <div class="modal-header dark:border-gray-700">
+            <h5 class="modal-title">Edit Resepsionis</h5>
+            <button type="button" class="btn-close dark:invert" @click="closeEditModal"></button>
           </div>
           <div class="modal-body">
-            <p class="mb-0">
-              Apakah Anda yakin ingin menghapus resepsionis
-              <strong>"{{ selectedReceptionist?.name }}"</strong>?
-            </p>
-            <p class="text-muted small mt-2 mb-0">
-              Tindakan ini tidak dapat dibatalkan.
-            </p>
-          </div>
-          <div class="modal-footer">
-            <button type="button" class="btn btn-secondary" @click="isDeleteModalOpen = false">
-              Batal
-            </button>
-            <button type="button" class="btn btn-danger" @click="deleteReceptionist">
-              <i class="fa-solid fa-trash me-1"></i> Hapus
-            </button>
+            <form @submit.prevent="handleUpdate">
+              <div class="row">
+                <div class="col-md-6 mb-3">
+                  <label class="form-label dark:text-gray-300">Nama Lengkap</label>
+                  <input v-model="editForm.name" type="text"
+                    class="form-control dark:bg-[#151824] dark:border-[#30384f] dark:text-white" required>
+                </div>
+                <div class="col-md-6 mb-3">
+                  <label class="form-label dark:text-gray-300">Email</label>
+                  <input v-model="editForm.email" type="email"
+                    class="form-control dark:bg-[#151824] dark:border-[#30384f] dark:text-white" required>
+                </div>
+                <div class="col-md-6 mb-3">
+                  <label class="form-label dark:text-gray-300">Password </label>
+                  <input v-model="editForm.password" type="password"
+                    class="form-control dark:bg-[#151824] dark:border-[#30384f] dark:text-white"
+                    placeholder="Kosongkan jika tidak ingin mengubah">
+                  <small class="text-muted dark:text-gray-400">Min. 6 karakter</small>
+                </div>
+                <div class="col-md-6 mb-3">
+                  <label class="form-label dark:text-gray-300">Status</label>
+                  <select v-model="editForm.is_active"
+                    class="form-select dark:bg-[#151824] dark:border-[#30384f] dark:text-white">
+                    <option :value="1">Aktif</option>
+                    <option :value="0">Non-Aktif</option>
+                  </select>
+                </div>
+              </div>
+              <div class="modal-footer px-0 pb-0 dark:border-gray-700">
+                <button type="button" class="btn btn-secondary" @click="closeEditModal">Batal</button>
+                <button type="submit" class="btn btn-primary" :disabled="isSubmitting">
+                  <span v-if="isSubmitting" class="spinner-border spinner-border-sm me-1"></span>
+                  Simpan Perubahan
+                </button>
+              </div>
+            </form>
           </div>
         </div>
       </div>
@@ -202,18 +283,5 @@ const deleteReceptionist = () => {
 </template>
 
 <style scoped>
-/* Modal backdrop fix */
-.modal-backdrop {
-  position: fixed;
-  top: 0;
-  left: 0;
-  z-index: 1040;
-  width: 100vw;
-  height: 100vh;
-  background-color: rgba(0, 0, 0, 0.5);
-}
-
-.modal {
-  z-index: 1050;
-}
+/* No additional styles needed since we use SweetAlert instead of modal */
 </style>

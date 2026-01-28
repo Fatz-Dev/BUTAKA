@@ -1,18 +1,63 @@
 <script setup lang="ts">
 import { ref } from 'vue'
 import { useRouter } from 'vue-router'
+import { useAuthStore } from '../stores/auth'
+import Swal from 'sweetalert2'
 
 const router = useRouter()
-const username = ref('')
+const authStore = useAuthStore()
+const email = ref('')
 const password = ref('')
 const rememberMe = ref(false)
+const isLoading = ref(false)
 
-const handleLogin = () => {
-  // Mock login logic
-  if (username.value.toLocaleLowerCase().includes('admin')) {
-    router.push('/admin')
+const handleLogin = async () => {
+  if (!email.value || !password.value) {
+    Swal.fire({
+      icon: 'warning',
+      title: 'Peringatan',
+      text: 'Email dan password harus diisi!',
+      confirmButtonColor: '#3a57e8'
+    })
+    return
+  }
+
+  isLoading.value = true
+
+  const result = await authStore.login(email.value, password.value)
+
+  isLoading.value = false
+
+  if (result.success && result.user) {
+    // Debug: log role
+    console.log('Login successful! User role:', result.user.role)
+
+    // Determine redirect path based on role
+    const userRole = result.user.role?.toLowerCase()
+    const redirectPath = userRole === 'admin' ? '/admin' : '/receptionist'
+
+    console.log('Will redirect to:', redirectPath)
+
+    // Show success message
+    await Swal.fire({
+      icon: 'success',
+      title: 'Login Berhasil!',
+      text: `Selamat datang, ${result.user.name || email.value}!`,
+      timer: 1500,
+      timerProgressBar: true,
+      showConfirmButton: false
+    })
+
+    // Redirect after Swal closes - use replace to prevent back button issues
+    console.log('Now redirecting...')
+    await router.replace(redirectPath)
   } else {
-    router.push('/receptionist')
+    Swal.fire({
+      icon: 'error',
+      title: 'Login Gagal',
+      text: result.message || 'Email atau password salah!',
+      confirmButtonColor: '#3a57e8'
+    })
   }
 }
 </script>
@@ -66,16 +111,16 @@ const handleLogin = () => {
                     <div class="row">
                       <div class="col-lg-12">
                         <div class="form-group">
-                          <label for="username" class="form-label">Username</label>
-                          <input type="text" v-model="username" class="form-control" id="username" placeholder="admin"
-                            required />
+                          <label for="email" class="form-label">Email</label>
+                          <input type="email" v-model="email" class="form-control" id="email"
+                            placeholder="admin@example.com" required :disabled="isLoading" />
                         </div>
                       </div>
                       <div class="col-lg-12">
                         <div class="form-group">
                           <label for="password" class="form-label">Password</label>
                           <input type="password" v-model="password" class="form-control" id="password"
-                            placeholder="Enter your password" required />
+                            placeholder="Enter your password" required :disabled="isLoading" />
                         </div>
                       </div>
                       <div class="col-lg-12 d-flex justify-content-between">
@@ -86,7 +131,10 @@ const handleLogin = () => {
                       </div>
                     </div>
                     <div class="d-flex justify-content-center">
-                      <button type="submit" class="btn btn-primary">Sign In</button>
+                      <button type="submit" class="btn btn-primary" :disabled="isLoading">
+                        <span v-if="isLoading" class="spinner-border spinner-border-sm me-2" role="status"></span>
+                        {{ isLoading ? 'Loading...' : 'Sign In' }}
+                      </button>
                     </div>
                   </form>
                 </div>

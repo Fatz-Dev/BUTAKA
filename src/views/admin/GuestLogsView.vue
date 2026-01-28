@@ -1,9 +1,35 @@
 <script setup lang="ts">
+import { onMounted } from 'vue'
 import DashboardLayout from '../../components/layout/DashboardLayout.vue'
 import { useGuestLogsStore } from '../../stores/guestLogs'
 
 const guestLogsStore = useGuestLogsStore()
 
+onMounted(async () => {
+  await guestLogsStore.fetchVisitors()
+})
+</script>
+
+<script lang="ts">
+const formatDate = (dateString: string) => {
+  if (!dateString) return '-'
+  try {
+    const date = new Date(dateString)
+    return new Intl.DateTimeFormat('id-ID', {
+      day: 'numeric',
+      month: 'long',
+      year: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit',
+      hour12: false
+    }).format(date)
+  } catch (e) {
+    return dateString
+  }
+}
+export default {
+  methods: { formatDate }
+}
 </script>
 
 <template>
@@ -23,7 +49,7 @@ const guestLogsStore = useGuestLogsStore()
                   <tr>
                     <th width="5%">No</th>
                     <th width="20%">Nama Tamu</th>
-                    <th width="15%">Asal/Instansi</th>
+                    <th width="15%">Instansi</th>
                     <th width="35%">Tujuan & Keperluan</th>
                     <th width="15%">Waktu Masuk</th>
                     <th width="10%">Status</th>
@@ -32,13 +58,13 @@ const guestLogsStore = useGuestLogsStore()
                 <tbody>
                   <tr v-for="(log, index) in guestLogsStore.logs" :key="log.id">
                     <td>{{ index + 1 }}</td>
-                    <td><span class="fw-medium text-primary">{{ log.nama }}</span></td>
-                    <td>{{ log.instansi }}</td>
+                    <td><span class="fw-medium">{{ log.name }}</span></td>
+                    <td>{{ log.institution }}</td>
                     <td>
-                      <div class="text-wrap">{{ log.keperluan }}</div>
-                      <small class="text-muted"><i class="fa fa-user-tie me-1"></i>{{ log.tujuan_staf }}</small>
+                      <div class="text-wrap">{{ log.purpose }}</div>
+                      <small class="text-muted"><i class="fa fa-user-tie me-1"></i>{{ log.host_name }}</small>
                     </td>
-                    <td><small class="fw-bold text-dark">{{ log.waktu }}</small></td>
+                    <td><small class="fw-bold">{{ formatDate(log.check_in_time) }}</small></td>
                     <td>
                       <span class="badge rounded-pill"
                         :class="log.status === 'selesai' ? 'bg-soft-success text-success border border-success' : 'bg-soft-warning text-warning border border-warning'">

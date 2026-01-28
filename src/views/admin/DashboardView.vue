@@ -7,17 +7,11 @@ const guestLogsStore = useGuestLogsStore()
 
 const stats = computed(() => {
   const allLogs = guestLogsStore.logs
-  const logsToday = allLogs.filter(() => {
-    // Basic date matching for today (waktu format is "HH:mm, DD MMM YYYY" or similar)
-    // For now we count all as it's a demo
-    return true
-  })
-
   const activeCount = allLogs.filter(l => l.status === 'aktif').length
   const totalLogs = allLogs.length
 
   return [
-    { title: 'Tamu Hari Ini', value: logsToday.length, icon: 'fa fa-users', colorClass: 'circle-progress-primary' },
+    { title: 'Tamu Hari Ini', value: totalLogs, icon: 'fa fa-users', colorClass: 'circle-progress-primary' },
     { title: 'Tamu Aktif', value: activeCount, icon: 'fa fa-user-check', colorClass: 'circle-progress-success' },
     { title: 'Total Kunjungan', value: totalLogs, icon: 'fa fa-history', colorClass: 'circle-progress-info' },
     { title: 'Rata-rata Rating', value: 4.8, icon: 'fa fa-star', colorClass: 'circle-progress-warning' }
@@ -33,11 +27,11 @@ const systemStatus = ref([
 
 const recentVisitors = computed(() => {
   return guestLogsStore.logs.slice(0, 5).map(l => ({
-    name: l.nama,
-    instansi: l.instansi,
-    menemui: l.tujuan_staf,
-    keperluan: l.keperluan,
-    waktu: l.waktu,
+    name: l.name,
+    institution: l.institution || l.instansi || '-',
+    host_name: l.host_name,
+    purpose: l.purpose,
+    check_in_time: l.check_in_time || l.created_at || '-',
     status: l.status
   }))
 })
@@ -52,7 +46,27 @@ const currentDate = computed(() => {
   return new Date().toLocaleDateString('id-ID', options)
 })
 
-onMounted(() => {
+const formatDate = (dateString: string) => {
+  if (!dateString || dateString === '-') return '-'
+  try {
+    const date = new Date(dateString)
+    return new Intl.DateTimeFormat('id-ID', {
+      day: 'numeric',
+      month: 'long',
+      year: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit',
+      hour12: false
+    }).format(date)
+  } catch (e) {
+    return dateString
+  }
+}
+
+onMounted(async () => {
+  // Fetch visitors from API
+  await guestLogsStore.fetchVisitors()
+
   // Initialize AOS if available
   if (typeof window !== 'undefined' && (window as any).AOS) {
     (window as any).AOS.init()
@@ -176,17 +190,18 @@ onMounted(() => {
                   </tr>
                 </thead>
                 <tbody>
-                  <tr v-for="(visitor, index) in recentVisitors" :key="visitor.name + visitor.waktu">
+                  <tr v-for="(visitor, index) in recentVisitors" :key="visitor.name + visitor.check_in_time">
                     <td>{{ index + 1 }}</td>
                     <td>
                       <span class="fw-medium text-primary">{{ visitor.name }}</span>
                     </td>
-                    <td>{{ visitor.instansi }}</td>
-                    <td><small class="text-dark"><i class="fa fa-user-tie me-1"></i>{{ visitor.menemui }}</small></td>
-                    <td>
-                      <div class="text-wrap">{{ visitor.keperluan }}</div>
+                    <td>{{ visitor.institution }}</td>
+                    <td><small class="text-muted"><i class="fa fa-user-tie me-1"></i>{{ visitor.host_name }}</small>
                     </td>
-                    <td><small class="fw-bold text-dark">{{ visitor.waktu.split(',')[0] }}</small></td>
+                    <td>
+                      <div class="text-wrap">{{ visitor.purpose }}</div>
+                    </td>
+                    <td><small class="fw-bold">{{ formatDate(visitor.check_in_time) }}</small></td>
                     <td>
                       <span class="badge rounded-pill"
                         :class="visitor.status === 'aktif' ? 'bg-soft-warning text-warning border border-warning' : 'bg-soft-success text-success border border-success'">

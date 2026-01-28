@@ -2,16 +2,22 @@
 import { ref, onMounted } from 'vue'
 import { Moon, Sun } from 'lucide-vue-next'
 import { useGuestLogsStore } from '../stores/guestLogs'
+import { useFeedbackStore } from '../stores/feedback'
+import Swal from 'sweetalert2'
 
 const isDarkMode = ref(false)
+const guestLogsStore = useGuestLogsStore()
+const feedbackStore = useFeedbackStore()
+const isSubmittingGuest = ref(false)
+const isSubmittingFeedback = ref(false)
 
 const guestForm = ref({
-    nama: '',
-    instansi: '',
-    telepon: '',
+    name: '',
+    institution: '',
+    phone: '',
     email: '',
-    tujuan_staf: '',
-    keperluan: ''
+    host_name: '',
+    purpose: ''
 })
 
 const feedbackForm = ref({
@@ -41,18 +47,70 @@ const setRating = (value: number) => {
     ratingLabel.value = ratingLabels[value - 1]
 }
 
-const guestLogsStore = useGuestLogsStore()
+const submitGuest = async () => {
+    isSubmittingGuest.value = true
+    const result = await guestLogsStore.addGuest({ ...guestForm.value })
+    isSubmittingGuest.value = false
 
-const submitGuest = () => {
-    guestLogsStore.addGuest({ ...guestForm.value })
-    alert('Terima kasih! Kunjungan Anda telah berhasil didaftarkan.')
-    guestForm.value = { nama: '', instansi: '', telepon: '', email: '', tujuan_staf: '', keperluan: '' }
+    if (result.success) {
+        Swal.fire({
+            icon: 'success',
+            title: 'Berhasil!',
+            text: 'Kunjungan Anda telah berhasil didaftarkan.',
+            confirmButtonColor: '#3a57e8',
+            timer: 2000,
+            timerProgressBar: true
+        })
+        guestForm.value = { name: '', institution: '', phone: '', email: '', host_name: '', purpose: '' }
+    } else {
+        Swal.fire({
+            icon: 'error',
+            title: 'Gagal!',
+            text: result.message || 'Terjadi kesalahan saat mendaftarkan kunjungan.',
+            confirmButtonColor: '#3a57e8'
+        })
+    }
 }
 
-const submitFeedback = () => {
-    alert('Terima kasih atas feedback Anda!')
-    feedbackForm.value = { nama: '', instansi: '', rating: 0, pesan: '' }
-    ratingLabel.value = 'Pilih Bintang'
+const submitFeedback = async () => {
+    if (feedbackForm.value.rating === 0) {
+        Swal.fire({
+            icon: 'warning',
+            title: 'Peringatan',
+            text: 'Silakan pilih rating terlebih dahulu.',
+            confirmButtonColor: '#3a57e8'
+        })
+        return
+    }
+
+    isSubmittingFeedback.value = true
+    const result = await feedbackStore.addFeedback({
+        name: feedbackForm.value.nama,
+        institution: feedbackForm.value.instansi,
+        rating: feedbackForm.value.rating,
+        comment: feedbackForm.value.pesan
+    })
+    isSubmittingFeedback.value = false
+
+    if (result.success) {
+        Swal.fire({
+            icon: 'success',
+            title: 'Terima Kasih!',
+            text: 'Feedback Anda telah berhasil dikirim.',
+            confirmButtonColor: '#3a57e8',
+            timer: 2000,
+            timerProgressBar: true
+        })
+        feedbackForm.value = { nama: '', instansi: '', rating: 0, pesan: '' }
+        ratingLabel.value = 'Pilih Bintang'
+    } else {
+        Swal.fire({
+            icon: 'error',
+            title: 'Gagal!',
+            text: result.message || 'Terjadi kesalahan saat mengirim feedback.',
+            confirmButtonColor: '#3a57e8'
+        })
+    }
 }
 
 onMounted(() => {
@@ -94,7 +152,7 @@ onMounted(() => {
             </div>
         </header>
 
-        <main class="max-w-5xl mx-auto py-12 px-6 flex flex-col gap-10">
+        <main class=" max-w-5xl mx-auto py-12 px-6 flex flex-col gap-10">
 
             <!-- Isi Buku Tamu Section -->
             <section
@@ -111,7 +169,7 @@ onMounted(() => {
                             <div class="relative">
                                 <span
                                     class="material-symbols-outlined absolute left-4 top-3.5 text-slate-400 text-[20px]">person</span>
-                                <input v-model="guestForm.nama" type="text"
+                                <input v-model="guestForm.name" type="text"
                                     class="w-full pl-11 pr-4 py-3 bg-white dark:!bg-[#151824] border border-slate-200 dark:border-[#30384f] rounded-lg focus:ring-2 focus:ring-[#3a57e8] focus:border-[#3a57e8] outline-none transition-all dark:text-white"
                                     placeholder="Nama lengkap Anda" required />
                             </div>
@@ -122,7 +180,7 @@ onMounted(() => {
                             <div class="relative">
                                 <span
                                     class="material-symbols-outlined absolute left-4 top-3.5 text-slate-400 text-[20px]">apartment</span>
-                                <input v-model="guestForm.instansi" type="text"
+                                <input v-model="guestForm.institution" type="text"
                                     class="w-full pl-11 pr-4 py-3 bg-white dark:!bg-[#151824] border border-slate-200 dark:border-[#30384f] rounded-lg focus:ring-2 focus:ring-[#3a57e8] focus:border-[#3a57e8] outline-none transition-all dark:text-white"
                                     placeholder="Organisasi atau pribadi" />
                             </div>
@@ -136,7 +194,7 @@ onMounted(() => {
                             <div class="relative">
                                 <span
                                     class="material-symbols-outlined absolute left-4 top-3.5 text-slate-400 text-[20px]">call</span>
-                                <input v-model="guestForm.telepon" type="tel"
+                                <input v-model="guestForm.phone" type="number"
                                     class="w-full pl-11 pr-4 py-3 bg-white dark:!bg-[#151824] border border-slate-200 dark:border-[#30384f] rounded-lg focus:ring-2 focus:ring-[#3a57e8] focus:border-[#3a57e8] outline-none transition-all dark:text-white"
                                     placeholder="0812-xxxx" required />
                             </div>
@@ -160,7 +218,7 @@ onMounted(() => {
                         <div class="relative">
                             <span
                                 class="material-symbols-outlined absolute left-4 top-3.5 text-slate-400 text-[20px]">person_search</span>
-                            <input v-model="guestForm.tujuan_staf" type="text"
+                            <input v-model="guestForm.host_name" type="text"
                                 class="w-full pl-11 pr-4 py-3 bg-white dark:!bg-[#151824] border border-slate-200 dark:border-[#30384f] rounded-lg focus:ring-2 focus:ring-[#3a57e8] focus:border-[#3a57e8] outline-none transition-all dark:text-white"
                                 placeholder="Siapa yang ingin Anda temui?" required />
                         </div>
@@ -169,7 +227,7 @@ onMounted(() => {
                     <div class="space-y-2">
                         <label class="text-sm font-semibold text-slate-700 dark:text-slate-300">Keperluan
                             Kunjungan</label>
-                        <textarea v-model="guestForm.keperluan"
+                        <textarea v-model="guestForm.purpose"
                             class="w-full p-4 bg-white dark:!bg-[#151824] border border-slate-200 dark:border-[#30384f] rounded-lg focus:ring-2 focus:ring-[#3a57e8] focus:border-[#3a57e8] outline-none transition-all dark:text-white h-32 resize-none"
                             placeholder="Berikan alasan atau detail kunjungan Anda..." required></textarea>
                     </div>
@@ -249,6 +307,10 @@ onMounted(() => {
         <footer class="bg-[#3a57e8] dark:bg-[#222738] text-white py-8 text-center mt-auto">
             <p class="text-sm opacity-80 font-medium">Project Magang</p>
         </footer>
+        <!-- <footer
+            class="bg-gradient-to-r from-cyan-200 via-blue-400 to-indigo-600 dark:bg-[#222738] text-white py-8 text-center mt-auto">
+            <p class="text-sm opacity-80 font-medium">Project Magang</p>
+        </footer> -->
     </div>
 </template>
 
