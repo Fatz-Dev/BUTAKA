@@ -9,11 +9,6 @@ class Visitor extends Model
 {
     use HasFactory;
 
-    /**
-     * The attributes that are mass assignable.
-     *
-     * @var array<int, string>
-     */
     protected $fillable = [
         'name',
         'phone',
@@ -39,33 +34,25 @@ class Visitor extends Model
         ];
     }
 
-    /**
-     * Scope untuk visitor yang sedang menunggu
-     */
+    // scope untuk visitor yang sedang menunggu
     public function scopeMenunggu($query)
     {
         return $query->where('status', 'menunggu');
     }
 
-    /**
-     * Scope untuk visitor yang sedang berkunjung
-     */
+    // scope untuk visitor yang sedang berkunjung
     public function scopeBerkunjung($query)
     {
         return $query->where('status', 'berkunjung');
     }
 
-    /**
-     * Scope untuk visitor yang sudah selesai
-     */
+    // scope untuk visitor yang sudah selesai
     public function scopeSelesai($query)
     {
         return $query->where('status', 'selesai');
     }
 
-    /**
-     * Scope untuk visitor hari ini
-     */
+    // scope untuk visitor hari ini
     public function scopeToday($query)
     {
         return $query->whereDate('check_in_time', today());

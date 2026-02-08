@@ -29,8 +29,20 @@ import { Moon, BookOpen } from 'lucide-vue-next'
     </main>
 
     <footer class="footer">
-      <div class="container center-text">
-        <p>Project Magang</p>
+      <div class="container footer-content">
+        <div class="footer-left">
+          <div class="footer-logo">
+            <BookOpen :size="18" />
+            <span class="brand-name">BuTaKa</span>
+          </div>
+          <span class="divider">|</span>
+          <span class="footer-tagline">Project Magang &copy; 2024</span>
+        </div>
+
+        <div class="footer-right">
+          <a href="#" class="footer-link">Privacy</a>
+          <a href="#" class="footer-link">Terms</a>
+        </div>
       </div>
     </footer>
   </div>
@@ -119,11 +131,74 @@ import { Moon, BookOpen } from 'lucide-vue-next'
   color: white;
   padding: 1.5rem 0;
   margin-top: auto;
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.footer-content {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
   font-size: 0.875rem;
+}
+
+.footer-left {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
   opacity: 0.9;
 }
 
-.center-text {
-  text-align: center;
+.footer-logo {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-weight: 600;
+}
+
+.brand-name {
+  letter-spacing: -0.025em;
+}
+
+.divider {
+  opacity: 0.3;
+}
+
+.footer-tagline {
+  font-weight: 400;
+  opacity: 0.8;
+}
+
+.footer-right {
+  display: flex;
+  gap: 1.5rem;
+}
+
+.footer-link {
+  color: white;
+  opacity: 0.7;
+  font-size: 0.8rem;
+  transition: opacity 0.2s;
+}
+
+.footer-link:hover {
+  opacity: 1;
+  text-decoration: underline;
+}
+
+@media (max-width: 640px) {
+  .footer-content {
+    flex-direction: column;
+    gap: 1rem;
+    text-align: center;
+  }
+
+  .footer-left {
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+
+  .divider {
+    display: none;
+  }
 }
 </style>

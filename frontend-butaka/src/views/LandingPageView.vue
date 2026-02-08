@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
-import { Moon, Sun } from 'lucide-vue-next'
+import { Moon, Sun, BookOpen } from 'lucide-vue-next'
 import { useGuestLogsStore } from '../stores/guestLogs'
 import { useFeedbackStore } from '../stores/feedback'
 import Swal from 'sweetalert2'
@@ -11,6 +11,7 @@ const feedbackStore = useFeedbackStore()
 const isSubmittingGuest = ref(false)
 const isSubmittingFeedback = ref(false)
 
+// form buku tamu
 const guestForm = ref({
     name: '',
     institution: '',
@@ -20,6 +21,7 @@ const guestForm = ref({
     purpose: ''
 })
 
+// form feedback
 const feedbackForm = ref({
     nama: '',
     instansi: '',
@@ -120,7 +122,7 @@ onMounted(() => {
         document.documentElement.classList.add('dark')
     }
 
-    // Initialize AOS if available
+    // untuk animasi
     if ((window as any).AOS) {
         (window as any).AOS.init();
     }
@@ -194,7 +196,7 @@ onMounted(() => {
                             <div class="relative">
                                 <span
                                     class="material-symbols-outlined absolute left-4 top-3.5 text-slate-400 text-[20px]">call</span>
-                                <input v-model="guestForm.phone" type="number"
+                                <input v-model="guestForm.phone" type="tel"
                                     class="w-full pl-11 pr-4 py-3 bg-white dark:!bg-[#151824] border border-slate-200 dark:border-[#30384f] rounded-lg focus:ring-2 focus:ring-[#3a57e8] focus:border-[#3a57e8] outline-none transition-all dark:text-white"
                                     placeholder="0812-xxxx" required />
                             </div>
@@ -304,13 +306,23 @@ onMounted(() => {
         </main>
 
         <!-- Footer -->
-        <footer class="bg-[#3a57e8] dark:bg-[#222738] text-white py-8 text-center mt-auto">
-            <p class="text-sm opacity-80 font-medium">Project Magang</p>
+        <footer class="bg-[#3a57e8] dark:bg-[#222738] text-white py-6 mt-auto border-t border-white/10">
+            <div class="max-w-7xl mx-auto px-6 md:px-12 flex flex-col md:flex-row justify-between items-center gap-4">
+                <div class="flex items-center gap-4 opacity-90">
+                    <div class="flex items-center gap-2 font-semibold">
+                        <BookOpen :size="18" />
+                        <span class="tracking-tight">BuTaKa</span>
+                    </div>
+                    <span class="hidden md:inline opacity-30">|</span>
+                    <span class="text-sm opacity-80">Project Magang &copy; 2024</span>
+                </div>
+
+                <div class="flex gap-6 text-sm opacity-70">
+                    <a href="#" class="hover:opacity-100 hover:underline transition-opacity">Privacy</a>
+                    <a href="#" class="hover:opacity-100 hover:underline transition-opacity">Terms</a>
+                </div>
+            </div>
         </footer>
-        <!-- <footer
-            class="bg-gradient-to-r from-cyan-200 via-blue-400 to-indigo-600 dark:bg-[#222738] text-white py-8 text-center mt-auto">
-            <p class="text-sm opacity-80 font-medium">Project Magang</p>
-        </footer> -->
     </div>
 </template>
 

@@ -137,8 +137,8 @@ const handleUpdate = async () => {
     <!-- Header Card -->
     <div class="card">
       <div class="card-header d-flex justify-content-between align-items-center mb-0">
-        <div class="header-title">
-          <h4 class="card-title mb-0">
+        <div class="card-title mb-2">
+          <h4 class="card-title mb-2">
             <i class="fa-solid fa-users me-2"></i>Daftar Resepsionis
           </h4>
         </div>

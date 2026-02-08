@@ -82,7 +82,7 @@ const handleReset = () => {
         <div class="card">
             <div class="card-header d-flex justify-content-between align-items-center mb-0">
                 <div class="header-title">
-                    <h4 class="card-title">
+                    <h4 class="card-title mb-2">
                         <i class="fa-solid fa-user-plus me-2"></i>Tambah Resepsionis Baru
                     </h4>
                 </div>
@@ -162,16 +162,16 @@ const handleReset = () => {
 
                                 <hr class="my-4" />
 
-                                <div class="d-flex gap-2">
-                                    <button type="submit" class="btn btn-primary" :disabled="isSubmitting">
+                                <div class="d-flex flex-wrap gap-2">
+                                    <button type="submit" class="btn btn-primary flex-grow-1 flex-md-grow-0" :disabled="isSubmitting">
                                         <span v-if="isSubmitting" class="spinner-border spinner-border-sm me-2"></span>
                                         <i v-else class="fa-solid fa-save me-2"></i>{{ isSubmitting ? 'Menyimpan...' :
-                                            'Simpan Resepsionis' }}
+                                            'Simpan' }}
                                     </button>
-                                    <button type="button" @click="handleReset" class="btn btn-secondary">
-                                        <i class="fa-solid fa-redo me-2"></i>Reset Form
+                                    <button type="button" @click="handleReset" class="btn btn-secondary flex-grow-1 flex-md-grow-0">
+                                        <i class="fa-solid fa-redo me-2"></i>Reset
                                     </button>
-                                    <router-link to="/admin/receptionists" class="btn btn-danger">
+                                    <router-link to="/admin/receptionists" class="btn btn-danger flex-grow-1 flex-md-grow-0">
                                         <i class="fa-solid fa-times me-2"></i>Batal
                                     </router-link>
                                 </div>

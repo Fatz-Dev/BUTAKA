@@ -9,7 +9,7 @@ use Symfony\Component\HttpFoundation\Response;
 class IsAdminOrReceptionist
 {
     /**
-     * Handle an incoming request.
+     * Handle untuk admin atau resepsionis.
      *
      * @param  \Closure(\Illuminate\Http\Request): (\Symfony\Component\HttpFoundation\Response)  $next
      */

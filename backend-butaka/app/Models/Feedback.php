@@ -9,16 +9,10 @@ class Feedback extends Model
 {
     use HasFactory;
 
-    /**
-     * Disable updated_at karena tabel feedback hanya punya created_at
-     */
+    // disable updated_at karena tabel feedback hanya punya created_at
     const UPDATED_AT = null;
 
-    /**
-     * The attributes that are mass assignable.
-     *
-     * @var array<int, string>
-     */
+
     protected $fillable = [
         'name',
         'institution',
@@ -26,11 +20,6 @@ class Feedback extends Model
         'comment',
     ];
 
-    /**
-     * Get the attributes that should be cast.
-     *
-     * @return array<string, string>
-     */
     protected function casts(): array
     {
         return [

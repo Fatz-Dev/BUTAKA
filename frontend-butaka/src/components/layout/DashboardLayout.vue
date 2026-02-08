@@ -61,13 +61,16 @@ onMounted(() => {
 const menuItems = computed(() => {
   if (props.role === 'admin') {
     return [
+      { label: 'Dashboard', path: '/admin', icon: 'fa-solid fa-gauge', isStatic: true },
       { label: 'Dashboard', path: '/admin', icon: 'fa-solid fa-gauge' },
-      { label: 'Daftar Resepsionis', path: '/admin/receptionists', icon: 'fa-solid fa-user-tie' },
+      { label: 'Resepsionis', path: '/admin/receptionists', icon: 'fa-solid fa-user-tie' },
       { label: 'Daftar Feedback', path: '/admin/feedback', icon: 'fa-solid fa-comments' },
-      { label: 'Daftar Tamu', path: '/admin/logs', icon: 'fa-solid fa-users' }
+      { label: 'Daftar Tamu', path: '/admin/logs', icon: 'fa-solid fa-users' },
+      { label: 'Keluar', path: '/logout', icon: 'fa-solid fa-right-from-bracket' }
     ]
   } else {
     return [
+      { label: 'Dashboard', path: '/receptionist', icon: 'fa-solid fa-gauge', isStatic: true },
       { label: 'Dashboard', path: '/receptionist', icon: 'fa-solid fa-gauge' },
       { label: 'Daftar Tamu', path: '/receptionist/guests', icon: 'fa-solid fa-users' }
     ]
@@ -90,6 +93,50 @@ const isSubmenuActive = (item: any) => {
   return item.submenu.some((sub: any) => route.path === sub.path)
 }
 
+const isSidebarOpen = ref(false)
+
+const toggleSidebar = (event?: Event) => {
+  if (event) event.preventDefault()
+  
+  // Check if we're on mobile or desktop (992px is Bootstrap's lg breakpoint)
+  if (window.innerWidth < 992) {
+    isSidebarOpen.value = !isSidebarOpen.value
+    if (isSidebarOpen.value) {
+      document.body.classList.add('sidebar-main')
+    } else {
+      document.body.classList.remove('sidebar-main')
+    }
+  } else {
+    // Desktop: Toggle sidebar-mini
+    document.body.classList.toggle('sidebar-mini')
+  }
+}
+
+const isProfileOpen = ref(false)
+const toggleProfile = (event?: Event) => {
+  // Use Bootstrap's data-bs-toggle logic usually, but keep state for mobile
+  isProfileOpen.value = !isProfileOpen.value
+}
+
+// Close dropdowns when clicking outside
+onMounted(() => {
+  document.addEventListener('click', (event) => {
+    const target = event.target as HTMLElement
+    // Close profile dropdown if clicked outside
+    if (isProfileOpen.value && !target.closest('.profile-dropdown-container')) {
+      isProfileOpen.value = false
+    }
+  })
+})
+
+// Watch for route changes to close sidebar on mobile
+import { watch } from 'vue'
+watch(route, () => {
+  if (window.innerWidth < 992 && isSidebarOpen.value) {
+    toggleSidebar()
+  }
+})
+
 const logout = async () => {
   await authStore.logout()
   router.push('/login')
@@ -97,27 +144,20 @@ const logout = async () => {
 </script>
 
 <template>
-  <!-- Sidebar -->
+  <!-- Sidebar Start -->
   <aside class="sidebar sidebar-default sidebar-white sidebar-base navs-rounded-all">
     <div class="sidebar-header d-flex align-items-center justify-content-start">
-      <router-link to="/" class="navbar-brand d-flex align-items-center">
-        <div class="logo-main">
-          <div class="logo-normal">
-            <img src="/assets/images/logo-new.png" alt="BuTaKa Logo" style="height: 40px; width: 40px;" />
-          </div>
-          <div class="logo-mini">
-            <img src="/assets/images/logo-new.png" alt="BuTaKa Logo" style="height: 30px; width: 30px;" />
-          </div>
-        </div>
-        <h3 class="logo-title ms-2 mb-0" style="font-weight: 700; font-size: 1.5rem;">BuTaKa</h3>
+      <router-link to="/" class="navbar-brand">
+        <!--Logo start-->
+        <img src="/assets/images/logo-new2.png" alt="User-Profile" class="theme-color-default-img img-fluid avatar avatar-50 avatar-rounded object-fit-cover">
+        <!--logo End-->
+        <h4 class="logo-title font-bold">BuTaKa</h4>
       </router-link>
-      <div class="sidebar-toggle" data-toggle="sidebar" data-active="true">
+      <div class="sidebar-toggle" data-toggle="sidebar" data-active="true" @click.stop="toggleSidebar">
         <i class="icon">
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <path d="M4.25 12.2744L19.25 12.2744" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"
-              stroke-linejoin="round"></path>
-            <path d="M10.2998 18.2988L4.2498 12.2748L10.2998 6.24976" stroke="currentColor" stroke-width="1.5"
-              stroke-linecap="round" stroke-linejoin="round"></path>
+            <path d="M4.25 12.2744L19.25 12.2744" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"></path>
+            <path d="M10.2998 18.2988L4.2498 12.2748L10.2998 6.24976" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"></path>
           </svg>
         </i>
       </div>
@@ -126,25 +166,27 @@ const logout = async () => {
       <div class="sidebar-list">
         <!-- Sidebar Menu Start -->
         <ul class="navbar-nav iq-main-menu" id="sidebar-menu">
-          <li class="nav-item static-item">
-            <a class="nav-link static-item disabled" href="#" tabindex="-1">
-              <span class="default-icon">Dashboard</span>
-              <span class="mini-icon"></span>
-            </a>
-          </li>
-
-          <li v-for="item in menuItems" :key="item.path" class="nav-item">
-            <router-link class="nav-link" :class="{ active: isActive(item.path) }" :to="item.path">
-              <i :class="item.icon"></i>
-              <span class="item-name">{{ item.label }}</span>
-            </router-link>
-          </li>
+          <template v-for="item in menuItems" :key="item.label">
+            <li v-if="item.isStatic" class="nav-item static-item">
+              <a class="nav-link static-item disabled" href="#" tabindex="-1">
+                <span class="default-icon">{{ item.label }}</span>
+                <span class="mini-icon"></span>
+              </a>
+            </li>
+            <li v-else class="nav-item">
+              <router-link class="nav-link" :class="{ active: isActive(item.path) }" :to="item.path">
+                <i :class="item.icon"></i>
+                <span class="item-name">{{ item.label }}</span>
+              </router-link>
+            </li>
+          </template>
         </ul>
         <!-- Sidebar Menu End -->
       </div>
     </div>
     <div class="sidebar-footer"></div>
   </aside>
+  <div class="sidebar-overlay" :class="{ 'show': isSidebarOpen }" @click="toggleSidebar"></div>
   <!-- Sidebar End -->
 
   <!-- Main Content Start -->
@@ -154,11 +196,10 @@ const logout = async () => {
       <!-- Nav Start -->
       <nav class="nav navbar navbar-expand-lg navbar-light iq-navbar">
         <div class="container-fluid navbar-inner">
-          <router-link to="/" class="navbar-brand d-flex align-items-center d-lg-none">
-            <img src="/assets/images/logo-new.png" alt="BuTaKa Logo" class="icon-30 me-2" />
-            <h4 class="logo-title mb-0">BuTaKa</h4>
+          <router-link to="/" class="navbar-brand">
+            <h4 class="logo-title">BuTaKa</h4>
           </router-link>
-          <div class="sidebar-toggle" data-toggle="sidebar" data-active="true">
+          <div class="sidebar-toggle" data-toggle="sidebar" data-active="true" @click.stop="toggleSidebar">
             <i class="icon">
               <svg width="20px" class="icon-20" viewBox="0 0 24 24">
                 <path fill="currentColor" d="M4,11V13H16L10.5,18.5L11.92,19.92L19.84,12L11.92,4.08L10.5,5.5L16,11H4Z" />
@@ -166,38 +207,26 @@ const logout = async () => {
             </i>
           </div>
 
-          <button class="navbar-toggler" type="button" data-bs-toggle="collapse"
-            data-bs-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false"
-            aria-label="Toggle navigation">
-            <span class="navbar-toggler-icon">
-              <span class="mt-2 navbar-toggler-bar bar1"></span>
-              <span class="navbar-toggler-bar bar2"></span>
-              <span class="navbar-toggler-bar bar3"></span>
-            </span>
-          </button>
+          <!-- Removed navbar-toggler for mobile -->
 
           <!-- Menu Start Header -->
-          <div class="collapse navbar-collapse" id="navbarSupportedContent">
-            <ul class="mb-2 navbar-nav ms-auto align-items-center navbar-list mb-lg-0">
-              <!-- Profile Dropdown -->
-              <li class="nav-item dropdown">
-                <a class="py-0 nav-link d-flex align-items-center" href="#" id="navbarDropdown" role="button"
-                  data-bs-toggle="dropdown" aria-expanded="false">
-                  <img src="/assets/images/avatars/admin-profile.png" alt="User-Profile"
-                    class="theme-color-default-img img-fluid avatar avatar-50 avatar-rounded"
-                    style="object-fit: cover; object-position: top;" onerror="this.style.display='none'" />
-                  <div class="caption ms-3 d-none d-md-block">
-                    <h6 class="mb-0 caption-title">{{ role === 'admin' ? 'Admin' : 'Resepsionis' }}</h6>
-                    <p class="mb-0 caption-sub-title">{{ role === 'admin' ? 'Administrator' : 'Receptionist' }}</p>
-                  </div>
-                </a>
-                <ul class="dropdown-menu dropdown-menu-end bg-white" aria-labelledby="navbarDropdown">
-                  <li><a class="dropdown-item" href="#" @click.prevent="logout">Logout</a></li>
-                </ul>
-              </li>
-              <!-- Profile Dropdown End -->
-            </ul>
-          </div>
+          <ul class="mb-2 navbar-nav ms-auto align-items-center navbar-list mb-lg-0 flex-row">
+            <!-- Profile Dropdown -->
+            <li class="nav-item dropdown profile-dropdown-container">
+              <a class="py-0 nav-link d-flex align-items-center" href="#" id="navbarDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false" @click.stop="toggleProfile">
+                <img src="/assets/images/logo-new2.png" alt="User-Profile" class="theme-color-default-img img-fluid avatar avatar-50 avatar-rounded object-fit-cover">
+                <div class="caption ms-3 d-none d-md-block">
+                  <h6 class="mb-0 caption-title">{{ role === 'admin' ? 'Admin' : 'Resepsionis' }}</h6>
+                  <p class="mb-0 caption-sub-title">{{ role === 'admin' ? 'Administrator' : 'Receptionist' }}</p>
+                </div>
+              </a>
+              <ul class="dropdown-menu dropdown-menu-end bg-white" :class="{ 'show': isProfileOpen }" aria-labelledby="navbarDropdown">
+                <li><a class="dropdown-item" href="#" @click.prevent="logout">Logout</a></li>
+              </ul>
+            </li>
+            <!--- Profile Dropdown End -->
+          </ul>
+          <!-- Menu Start Header End-->
           <!-- Menu Start Header End-->
         </div>
       </nav>
@@ -309,13 +338,41 @@ const logout = async () => {
     </div>
 
 
-  </main>
+</main>
 </template>
 
 <style scoped>
-/* Minimal overrides - using Hope UI styles from index.html */
+/* Main Content Layout Fixes */
+.main-content {
+  transition: all 0.3s ease-in-out;
+  position: relative;
+  min-height: 100vh;
+  overflow-x: hidden;
+  max-width: 100vw;
+}
 
-/* Fix: Ensure navbar-collapse is always visible on desktop */
+/* Desktop: Push content when sidebar is present */
+@media (min-width: 992px) {
+  .sidebar {
+    position: fixed;
+    top: 0;
+    left: 0;
+    z-index: 1000;
+  }
+
+  .main-content {
+    margin-left: 280px; /* Default sidebar width */
+    max-width: calc(100vw - 280px);
+  }
+
+  /* When sidebar is minimized */
+  body.sidebar-mini .main-content {
+    margin-left: 80px;
+    max-width: calc(100vw - 80px);
+  }
+}
+
+/* Ensure navbar-collapse is always visible on desktop */
 @media (min-width: 992px) {
   .navbar-collapse {
     display: flex !important;
@@ -326,5 +383,85 @@ const logout = async () => {
 /* Ensure dropdown menu displays properly */
 .nav-item.dropdown .dropdown-menu {
   z-index: 1050;
+  display: block;
+  visibility: hidden;
+  opacity: 0;
+  transition: all 0.2s ease-in-out;
+  transform: translateY(-10px);
+}
+
+.nav-item.dropdown .dropdown-menu.show {
+  visibility: visible;
+  opacity: 1;
+  transform: translateY(0);
+}
+
+/* Mobile Sidebar Overlay */
+.sidebar-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background: rgba(0, 0, 0, 0.5);
+  z-index: 900;
+  display: none;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+.sidebar-overlay.show {
+  display: block;
+  opacity: 1;
+}
+
+@media (max-width: 991.98px) {
+  body.sidebar-main .sidebar {
+    left: 0 !important;
+    z-index: 1000;
+    transform: translateX(0) !important;
+    transition: all 0.3s ease-in-out;
+  }
+  
+  .sidebar {
+    left: -100% !important;
+    transition: all 0.3s ease-in-out;
+    position: fixed;
+    top: 0;
+    bottom: 0;
+  }
+
+  /* On mobile, main content should have zero margin and no overflow */
+  .main-content {
+    margin-left: 0 !important;
+    max-width: 100vw !important;
+    overflow-x: hidden !important;
+  }
+
+  /* Prevent horizontal scroll on navbar header */
+  .iq-navbar-header,
+  .iq-container,
+  .container-fluid {
+    max-width: 100vw;
+    overflow-x: hidden;
+  }
+
+  /* Mobile Profile Dropdown Fixes */
+  .profile-dropdown-container .dropdown-menu.show {
+    position: absolute;
+    top: 100% !important;
+    right: 0 !important;
+    left: auto !important;
+    transform: none !important;
+    margin-top: 10px;
+    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+    border: 1px solid rgba(0,0,0,0.05);
+    min-width: 200px;
+    z-index: 1050;
+  }
+}
+
+.sidebar-toggle {
+  cursor: pointer;
 }
 </style>

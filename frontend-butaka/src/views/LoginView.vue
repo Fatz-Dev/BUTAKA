@@ -73,36 +73,10 @@ const handleLogin = async () => {
                 <div class="card-body">
                   <router-link to="/" class="navbar-brand d-flex align-items-center mb-3">
                     <!--Logo start-->
-                    <div class="logo-main">
-                      <div class="logo-normal">
-                        <svg class="text-primary icon-30" viewBox="0 0 30 30" fill="none"
-                          xmlns="http://www.w3.org/2000/svg">
-                          <rect x="-0.757324" y="19.2427" width="28" height="4" rx="2"
-                            transform="rotate(-45 -0.757324 19.2427)" fill="currentColor" />
-                          <rect x="7.72803" y="27.728" width="28" height="4" rx="2"
-                            transform="rotate(-45 7.72803 27.728)" fill="currentColor" />
-                          <rect x="10.5366" y="16.3945" width="16" height="4" rx="2"
-                            transform="rotate(45 10.5366 16.3945)" fill="currentColor" />
-                          <rect x="10.5562" y="-0.556152" width="28" height="4" rx="2"
-                            transform="rotate(45 10.5562 -0.556152)" fill="currentColor" />
-                        </svg>
-                      </div>
-                      <div class="logo-mini">
-                        <svg class="text-primary icon-30" viewBox="0 0 30 30" fill="none"
-                          xmlns="http://www.w3.org/2000/svg">
-                          <rect x="-0.757324" y="19.2427" width="28" height="4" rx="2"
-                            transform="rotate(-45 -0.757324 19.2427)" fill="currentColor" />
-                          <rect x="7.72803" y="27.728" width="28" height="4" rx="2"
-                            transform="rotate(-45 7.72803 27.728)" fill="currentColor" />
-                          <rect x="10.5366" y="16.3945" width="16" height="4" rx="2"
-                            transform="rotate(45 10.5366 16.3945)" fill="currentColor" />
-                          <rect x="10.5562" y="-0.556152" width="28" height="4" rx="2"
-                            transform="rotate(45 10.5562 -0.556152)" fill="currentColor" />
-                        </svg>
-                      </div>
-                    </div>
+                    <img src="/assets/images/logo-new.png" alt="logo"
+                      class="img-fluid avatar avatar-40 animated-scaleX avatar-rounded">
                     <!--logo End-->
-                    <h4 class="logo-title ms-3">BuTaKa</h4>
+                    <h4 class="logo-title" style="font-size: 24px;">BuTaKa</h4>
                   </router-link>
                   <h2 class="mb-2 text-center">Sign In</h2>
                   <p class="text-center">Login to stay connected.</p>
@@ -159,8 +133,8 @@ const handleLogin = async () => {
 
         <div class="col-md-6 d-md-block d-none bg-primary p-0 mt-n1 vh-100 overflow-hidden">
           <img src="/assets/images/auth/01.png" class="img-fluid gradient-main animated-scaleX" alt="images">
-          <img src="/assets/images/loader.gif" alt="User-Profile"
-            class="img-fluid avatar avatar-100 animated-scaleX avatar-rounded position-absolute top-50 start-50 translate-middle">
+          <img src="/assets/images/logo-new.png" alt="User-Profile"
+            class="img-fluid bg-[#ffffff] p-2 avatar avatar-100 animated-scaleX avatar-rounded position-absolute top-50 start-50 translate-middle">
         </div>
       </div>
     </section>

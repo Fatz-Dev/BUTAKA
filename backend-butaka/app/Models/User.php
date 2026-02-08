@@ -71,17 +71,13 @@ class User extends Authenticatable
         return null;
     }
 
-    /**
-     * Check if user is admin
-     */
+    // check user apakah admin
     public function isAdmin(): bool
     {
         return $this->role === 'admin';
     }
 
-    /**
-     * Check if user is resepsionis
-     */
+    // check user apakah resepsionis
     public function isResepsionis(): bool
     {
         return $this->role === 'resepsionis';

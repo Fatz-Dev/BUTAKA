@@ -11,9 +11,7 @@ use Illuminate\Support\Str;
  */
 class UserFactory extends Factory
 {
-    /**
-     * The current password being used by the factory.
-     */
+    // agar password tidak berubah
     protected static ?string $password;
 
     /**
@@ -32,9 +30,7 @@ class UserFactory extends Factory
         ];
     }
 
-    /**
-     * Indicate that the model's email address should be unverified.
-     */
+    // untuk email tidak terverifikasi
     public function unverified(): static
     {
         return $this->state(fn (array $attributes) => [
