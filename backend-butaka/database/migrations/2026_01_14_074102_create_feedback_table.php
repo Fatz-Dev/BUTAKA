@@ -13,8 +13,7 @@ return new class extends Migration
     {
         Schema::create('feedback', function (Blueprint $table) {
             $table->id();
-            $table->string('name')->nullable(); // nama pengunjung yang memberikan feedback
-            $table->string('institution')->nullable(); // instansi atau lembaga pengunjung
+            $table->foreignId('visitor_id')->constrained('visitors')->onDelete('cascade');
             $table->unsignedTinyInteger('rating'); // 1-5
             $table->text('comment')->nullable(); // komentar atau feedback
             $table->timestamp('created_at')->useCurrent();

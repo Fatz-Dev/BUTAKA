@@ -80,12 +80,10 @@ export const visitorsApi = {
         api.post('/visitors', data),
     update: (id: number, data: object) =>
         api.put(`/visitors/${id}`, data),
-    updateStatus: (id: number, status: string) =>
-        api.put(`/visitors/${id}/status`, { status }),
-    checkout: (id: number) =>
-        api.post(`/visitors/${id}/checkout`),
-    delete: (id: number) =>
-        api.delete(`/visitors/${id}`)
+    updateStatus: (id: string | number, status: string) => api.put(`/visitors/${id}/status`, { status }),
+    checkout: (id: string | number) => api.post(`/visitors/${id}/checkout`),
+    delete: (id: string | number) => api.delete(`/visitors/${id}`),
+    getVisitorList: () => api.get('/visitors/list'),
 }
 
 // Feedback API

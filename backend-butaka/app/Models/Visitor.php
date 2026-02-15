@@ -57,4 +57,12 @@ class Visitor extends Model
     {
         return $query->whereDate('check_in_time', today());
     }
+
+    /**
+     * Relasi ke Feedback
+     */
+    public function feedbacks()
+    {
+        return $this->hasMany(Feedback::class);
+    }
 }

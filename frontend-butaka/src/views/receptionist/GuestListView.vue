@@ -80,7 +80,14 @@ onMounted(async () => {
 })
 
 const filteredVisitors = computed(() => {
-  let logs = guestLogsStore.logs
+  const todayStr = new Date().toLocaleDateString('en-CA') // format YYYY-MM-DD
+
+  // Only show today's visitors
+  let logs = guestLogsStore.logs.filter(v => {
+    if (!v.check_in_time) return false
+    return v.check_in_time.startsWith(todayStr)
+  })
+
   if (!searchQuery.value) return logs
   const query = searchQuery.value.toLowerCase()
   return logs.filter(v =>
@@ -163,15 +170,6 @@ const formatDate = (dateString: string | null | undefined) => {
                       class="w-full md:w-64 pl-10 pr-4 py-2.5 bg-white dark:!bg-[#151824] border border-slate-200 dark:border-[#30384f] rounded-lg text-sm focus:ring-2 focus:ring-[#3a57e8] focus:border-[#3a57e8] outline-none transition-all dark:text-white dark:placeholder-slate-400"
                       placeholder="Cari nama atau instansi..." />
                   </div>
-                  <div
-                    class="flex items-center gap-2 px-4 py-2 bg-[#3a57e8] dark:bg-[#3a57e8]/90 text-white rounded-lg text-xs font-bold shadow-sm dark:shadow-[#3a57e8]/20">
-                    <span class="relative flex h-2 w-2">
-                      <span
-                        class="animate-ping absolute inline-flex h-full w-full rounded-full bg-white opacity-75"></span>
-                      <span class="relative inline-flex rounded-full h-2 w-2 bg-white"></span>
-                    </span>
-                    LIVE RECORDS
-                  </div>
                 </div>
               </div>
             </div>
@@ -218,7 +216,7 @@ const formatDate = (dateString: string | null | undefined) => {
                     </td>
                     <td class="px-6 py-5">
                       <p class="text-sm font-bold text-[#3a57e8] dark:text-blue-400">{{ formatDate(visitor.check_in_time
-                        || visitor.check_in_time ) }}</p>
+                        || visitor.check_in_time) }}</p>
                       <p class="text-xs text-slate-400 dark:text-slate-500 mt-0.5">{{
                         visitor.check_in_time.split(',')[1] || ''
                       }}</p>

@@ -145,4 +145,18 @@ class VisitorController extends Controller
 
         return $this->success(null, 'Data tamu berhasil dihapus');
     }
+
+    /**
+     * List visitors for feedback dropdown (public)
+     */
+    public function listForFeedback(): JsonResponse
+    {
+        // Only return name, institution and id for privacy
+        $visitors = Visitor::select('id', 'name', 'institution')
+            ->latest()
+            ->limit(100)
+            ->get();
+
+        return $this->success($visitors);
+    }
 }

@@ -1,51 +1,21 @@
 <script setup lang="ts">
-import { computed, onMounted } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import DashboardLayout from '../../components/layout/DashboardLayout.vue'
 import { useFeedbackStore } from '../../stores/feedback'
-import Swal from 'sweetalert2'
 
 const feedbackStore = useFeedbackStore()
-const feedbacks = computed(() => feedbackStore.feedbacks)
+const selectedRating = ref<number>(0) // 0 means all ratings
 
-// Confirm delete with SweetAlert
-const confirmDelete = async (id: number, nama: string) => {
-    const result = await Swal.fire({
-        title: 'Hapus Feedback?',
-        html: `<p>Anda yakin ingin menghapus feedback dari <b>${nama}</b>?</p>`,
-        icon: 'warning',
-        showCancelButton: true,
-        confirmButtonColor: '#dc3545',
-        cancelButtonColor: '#6b7280',
-        confirmButtonText: '<i class="fa fa-trash me-2"></i> Ya, Hapus',
-        cancelButtonText: 'Batal'
-    })
-
-    if (result.isConfirmed) {
-        const deleteResult = await feedbackStore.deleteFeedback(id)
-        if (deleteResult.success) {
-            Swal.fire({
-                title: 'Berhasil!',
-                text: 'Feedback telah dihapus.',
-                icon: 'success',
-                confirmButtonColor: '#3a57e8',
-                timer: 2000,
-                timerProgressBar: true
-            })
-        } else {
-            Swal.fire({
-                title: 'Gagal!',
-                text: deleteResult.message || 'Terjadi kesalahan saat menghapus.',
-                icon: 'error',
-                confirmButtonColor: '#3a57e8'
-            })
-        }
+const feedbacks = computed(() => {
+    if (selectedRating.value === 0) {
+        return feedbackStore.feedbacks
     }
-}
+    return feedbackStore.feedbacks.filter(fb => fb.rating === selectedRating.value)
+})
 
 // Fetch feedback on mount
 onMounted(async () => {
     await feedbackStore.fetchFeedback()
-    console.log('Feedbacks data:', feedbackStore.feedbacks)
 })
 
 const formatDate = (dateString: string | null | undefined) => {
@@ -76,6 +46,15 @@ const formatDate = (dateString: string | null | undefined) => {
                         <h5 class="mb-0">
                             <i class="fa-solid fa-comments me-2"></i>Daftar Feedback Tamu
                         </h5>
+                        <div class="d-flex align-items-center">
+                            <label class="me-2 text-muted small fw-bold">Filter Rating:</label>
+                            <select v-model="selectedRating" class="form-select form-select-sm" style="width: auto;">
+                                <option :value="0">Semua Bintang</option>
+                                <option v-for="i in 5" :key="i" :value="6 - i">
+                                    {{ 6 - i }} Bintang
+                                </option>
+                            </select>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -87,8 +66,8 @@ const formatDate = (dateString: string | null | undefined) => {
                     <div class="card-body">
                         <div class="d-flex align-items-center mb-3">
                             <div>
-                                <h6 class="mb-0 fw-bold">{{ fb.name || fb.nama }}</h6>
-                                <small class="text-muted">{{ fb.instansi }}</small>
+                                <h6 class="mb-0 fw-bold">{{ fb.visitor?.name }}</h6>
+                                <small class="text-muted">{{ fb.visitor?.institution }}</small>
                             </div>
                             <div class="ms-auto">
                                 <div class="text-warning">
@@ -100,7 +79,7 @@ const formatDate = (dateString: string | null | undefined) => {
                             </div>
                         </div>
                         <p class="card-text text-secondary mb-4 italic" style="font-style: italic">
-                            "{{ fb.comment || fb.pesan }}"
+                            "{{ fb.comment }}"
                         </p>
                     </div>
                     <div class="card-footer bg-transparent border-0 pt-0 pb-3">
@@ -109,12 +88,6 @@ const formatDate = (dateString: string | null | undefined) => {
                                 <i class="fa-regular fa-clock me-1"></i>
                                 {{ formatDate(fb.created_at) }}
                             </small>
-                            <div class="btn-group btn-group-sm">
-                                <button @click="confirmDelete(fb.id, fb.name)" class="btn btn-outline-danger border-0"
-                                    title="Hapus">
-                                    <i class="fa-solid fa-trash-can"></i>
-                                </button>
-                            </div>
                         </div>
                     </div>
                 </div>

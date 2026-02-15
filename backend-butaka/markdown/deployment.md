@@ -144,3 +144,42 @@ php artisan config:cache
 php artisan route:cache
 php artisan view:cache
 ```
+
+---
+
+## 7. Deployment ke Render.com (PaaS)
+
+Render.com adalah platform PaaS yang memudahkan deployment aplikasi modern. Karena Render tidak memiliki runtime PHP native, kita menggunakan **Docker** yang sudah dikonfigurasi (`Dockerfile`).
+
+### A. Persiapan File
+Pastikan file-file berikut sudah ada di repository Anda (sudah disiapkan):
+1. `Dockerfile` (Multi-stage build PHP 8.2 + Nginx)
+2. `docker/nginx.conf` (Konfigurasi Nginx)
+3. `docker/entrypoint.sh` (Startup script)
+4. `render.yaml` (Blueprint deployment)
+
+### B. Deployment Otomatis (Blueprint)
+Cara termudah deploy ke Render:
+1. Push semua perubahan ke GitHub.
+2. Buka dashboard [Render.com](https://dashboard.render.com).
+3. Pilih **New +** -> **Blueprint**.
+4. Hubungkan repository `backend-butaka`.
+5. Render akan otomatis membaca `render.yaml` dan menyiapkan service.
+6. Klik **Apply** / **Create Service**.
+
+### C. Deployment Manual (Web Service)
+Jika tidak menggunakan Blueprint:
+1. Pilih **New +** -> **Web Service**.
+2. Connect repository GitHub Anda.
+3. Pilih Runtime: **Docker**.
+4. Set Environment Variables wajib:
+   - `APP_KEY`: (Generate via `php artisan key:generate --show`)
+   - `APP_DEBUG`: `false`
+   - `APP_ENV`: `production`
+   - `APP_URL`: `https://nama-app.onrender.com`
+   - `FRONTEND_URL`: URL aplikasi frontend Anda (untuk CORS)
+   - `DB_CONNECTION`: `sqlite` (atau `pgsql` jika pakai database eksternal)
+
+### D. Catatan Penting
+- **Database SQLite**: Di Render, filesystem bersifat *ephemeral*. Data SQLite akan **hilang** setiap kali deploy ulang / restart. Untuk production, sangat disarankan menggunakan **PostgreSQL** (Render menyediakan Managed PostgreSQL gratis 90 hari).
+- **Cold Start**: Pada paket Free, service akan "tidur" setelah 15 menit inaktif. Request pertama akan memakan waktu ~50 detik untuk bangun.

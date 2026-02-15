@@ -1,0 +1,45 @@
+# ============================================
+# Render.com Blueprint - BUTAKA Backend
+# ============================================
+# Docs: https://docs.render.com/blueprint-spec
+#
+# Cara Pakai:
+# 1. Push file ini ke repository GitHub
+# 2. Buka https://dashboard.render.com/blueprints
+# 3. Klik "New Blueprint Instance"
+# 4. Pilih repository yang berisi file ini
+# 5. Render akan otomatis membaca render.yaml
+# ============================================
+
+services:
+  - type: web
+    name: butaka-backend
+    runtime: docker
+    dockerfilePath: ./Dockerfile
+    region: singapore  # Pilih region terdekat (Singapore untuk Indonesia)
+    plan: free         # Ganti ke 'starter' untuk production ($7/bulan)
+    envVars:
+      - key: APP_NAME
+        value: Butaka
+      - key: APP_ENV
+        value: production
+      - key: APP_DEBUG
+        value: "false"
+      - key: APP_KEY
+        generateValue: true  # Render akan auto-generate
+      - key: APP_URL
+        sync: false  # Diisi manual setelah deploy (URL Render)
+      - key: DB_CONNECTION
+        value: sqlite
+      - key: FRONTEND_URL
+        sync: false  # Diisi manual (URL frontend)
+      - key: LOG_CHANNEL
+        value: stderr
+      - key: SESSION_DRIVER
+        value: cookie
+      - key: CACHE_STORE
+        value: file
+      - key: QUEUE_CONNECTION
+        value: sync
+      - key: SANCTUM_STATEFUL_DOMAINS
+        sync: false  # Diisi manual (domain frontend)

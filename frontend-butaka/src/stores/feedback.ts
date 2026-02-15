@@ -4,15 +4,14 @@ import { feedbackApi } from '../services/api'
 
 export interface Feedback {
     id: number
-    name: string
-    nama?: string
-    institution: string
-    instansi?: string
+    visitor_id: number
+    visitor?: {
+        name: string
+        institution: string
+    }
     rating: number
     comment: string
-    pesan?: string
     created_at?: string
-    updated_at?: string
 }
 
 export const useFeedbackStore = defineStore('feedback', () => {
@@ -20,7 +19,7 @@ export const useFeedbackStore = defineStore('feedback', () => {
     const loading = ref(false)
     const error = ref<string | null>(null)
 
-    // Fetch all feedback from API
+    // Fetch all feedback from API (admin)
     const fetchFeedback = async () => {
         loading.value = true
         error.value = null
@@ -38,7 +37,7 @@ export const useFeedbackStore = defineStore('feedback', () => {
     }
 
     // Add new feedback (public)
-    const addFeedback = async (data: { name: string; institution: string; rating: number; comment: string }) => {
+    const addFeedback = async (data: { visitor_id: number; rating: number; comment: string }) => {
         loading.value = true
         error.value = null
         try {

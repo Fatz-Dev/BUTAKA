@@ -15,7 +15,7 @@ class FeedbackController extends Controller
     // Data Feedback
     public function index(): JsonResponse
     {
-        $feedback = Feedback::latest()->get();
+        $feedback = Feedback::with('visitor')->latest()->get();
         return $this->success($feedback);
     }
 

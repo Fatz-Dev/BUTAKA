@@ -17,6 +17,7 @@ Route::post('/visitors', [VisitorController::class, 'store']);
 
 // Feedback Public Routes
 Route::post('/feedback', [FeedbackController::class, 'store']);
+Route::get('/visitors/list', [VisitorController::class, 'listForFeedback']);
 
 // Public Dashboard Data (for Landing Page)
 Route::get('/visitors/recent', [DashboardController::class, 'recentVisitors']);

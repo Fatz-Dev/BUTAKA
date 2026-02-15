@@ -14,11 +14,18 @@ class Feedback extends Model
 
 
     protected $fillable = [
-        'name',
-        'institution',
+        'visitor_id',
         'rating',
         'comment',
     ];
+
+    /**
+     * Relasi ke Visitor
+     */
+    public function visitor()
+    {
+        return $this->belongsTo(Visitor::class);
+    }
 
     protected function casts(): array
     {

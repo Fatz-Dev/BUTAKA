@@ -97,7 +97,7 @@ const isSidebarOpen = ref(false)
 
 const toggleSidebar = (event?: Event) => {
   if (event) event.preventDefault()
-  
+
   // Check if we're on mobile or desktop (992px is Bootstrap's lg breakpoint)
   if (window.innerWidth < 992) {
     isSidebarOpen.value = !isSidebarOpen.value
@@ -149,15 +149,18 @@ const logout = async () => {
     <div class="sidebar-header d-flex align-items-center justify-content-start">
       <router-link to="/" class="navbar-brand">
         <!--Logo start-->
-        <img src="/assets/images/logo-new2.png" alt="User-Profile" class="theme-color-default-img img-fluid avatar avatar-50 avatar-rounded object-fit-cover">
+        <img src="/assets/images/logo-new2.png" alt="User-Profile"
+          class=" img-fluid avatar avatar-50 rounded object-fit-contain">
         <!--logo End-->
         <h4 class="logo-title font-bold">BuTaKa</h4>
       </router-link>
       <div class="sidebar-toggle" data-toggle="sidebar" data-active="true" @click.stop="toggleSidebar">
         <i class="icon">
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <path d="M4.25 12.2744L19.25 12.2744" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"></path>
-            <path d="M10.2998 18.2988L4.2498 12.2748L10.2998 6.24976" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"></path>
+            <path d="M4.25 12.2744L19.25 12.2744" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"
+              stroke-linejoin="round"></path>
+            <path d="M10.2998 18.2988L4.2498 12.2748L10.2998 6.24976" stroke="currentColor" stroke-width="1.5"
+              stroke-linecap="round" stroke-linejoin="round"></path>
           </svg>
         </i>
       </div>
@@ -213,14 +216,17 @@ const logout = async () => {
           <ul class="mb-2 navbar-nav ms-auto align-items-center navbar-list mb-lg-0 flex-row">
             <!-- Profile Dropdown -->
             <li class="nav-item dropdown profile-dropdown-container">
-              <a class="py-0 nav-link d-flex align-items-center" href="#" id="navbarDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false" @click.stop="toggleProfile">
-                <img src="/assets/images/logo-new2.png" alt="User-Profile" class="theme-color-default-img img-fluid avatar avatar-50 avatar-rounded object-fit-cover">
+              <a class="py-0 nav-link d-flex align-items-center" href="#" id="navbarDropdown" role="button"
+                data-bs-toggle="dropdown" aria-expanded="false" @click.stop="toggleProfile">
+                <img src="/assets/images/logo-new2.png" alt="User-Profile"
+                  class="theme-color-default-img img-fluid avatar avatar-50 rounded object-fit-contain">
                 <div class="caption ms-3 d-none d-md-block">
                   <h6 class="mb-0 caption-title">{{ role === 'admin' ? 'Admin' : 'Resepsionis' }}</h6>
                   <p class="mb-0 caption-sub-title">{{ role === 'admin' ? 'Administrator' : 'Receptionist' }}</p>
                 </div>
               </a>
-              <ul class="dropdown-menu dropdown-menu-end bg-white" :class="{ 'show': isProfileOpen }" aria-labelledby="navbarDropdown">
+              <ul class="dropdown-menu dropdown-menu-end bg-white" :class="{ 'show': isProfileOpen }"
+                aria-labelledby="navbarDropdown">
                 <li><a class="dropdown-item" href="#" @click.prevent="logout">Logout</a></li>
               </ul>
             </li>
@@ -240,8 +246,9 @@ const logout = async () => {
               <div class="flex-wrap d-flex justify-content-between align-items-center">
                 <slot name="header">
                   <div>
-                    <h1>Dashboard For Admin BuTaKa</h1>
-                    <p>Selamat datang di dashboard admin BuTaKa | Monitoring Buku Tamu Kantor.</p>
+                    <h1 class="text-white font-bold text-2xl">Dashboard For Admin BuTaKa</h1>
+                    <p class="text-white font-bold text-lg">Selamat datang di dashboard admin BuTaKa | Monitoring Buku Tamu
+                      Kantor.</p>
                   </div>
                 </slot>
               </div>
@@ -338,7 +345,7 @@ const logout = async () => {
     </div>
 
 
-</main>
+  </main>
 </template>
 
 <style scoped>
@@ -361,7 +368,8 @@ const logout = async () => {
   }
 
   .main-content {
-    margin-left: 280px; /* Default sidebar width */
+    margin-left: 280px;
+    /* Default sidebar width */
     max-width: calc(100vw - 280px);
   }
 
@@ -422,7 +430,7 @@ const logout = async () => {
     transform: translateX(0) !important;
     transition: all 0.3s ease-in-out;
   }
-  
+
   .sidebar {
     left: -100% !important;
     transition: all 0.3s ease-in-out;
@@ -455,7 +463,7 @@ const logout = async () => {
     transform: none !important;
     margin-top: 10px;
     box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
-    border: 1px solid rgba(0,0,0,0.05);
+    border: 1px solid rgba(0, 0, 0, 0.05);
     min-width: 200px;
     z-index: 1050;
   }

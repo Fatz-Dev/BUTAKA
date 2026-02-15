@@ -1,48 +1,68 @@
-# Butaka Backend - Guest Management System
+# BuTaKa Backend - Sistem Manajemen Buku Tamu Kantor
 
-API Backend untuk sistem manajemen tamu "Butaka", dibangun menggunakan framework Laravel 12.
+API Backend untuk sistem manajemen tamu "BuTaKa" (Buku Tamu Kantor), dibangun menggunakan framework Laravel 12.
 
-## 🚀 Fitur Utama
-- **Autentikasi**: Sistem login aman menggunakan Laravel Sanctum.
-- **Manajemen User**: CRUD user (Admin & Resepsionis) dengan kontrol aktif/non-aktif.
-- **Manajemen Pengunjung (Visitor)**: Pencatatan tamu masuk (check-in), pemantauan status, dan check-out.
-- **Sistem Feedback**: Pengumpulan rating dan ulasan dari pengunjung secara publik.
-- **Dashboard Ringkasan**: Statistik real-time, tren pengunjung, dan breakdown rating.
-- **Manajemen Profil**: Ganti password, update info profil, dan upload foto (avatar).
+---
 
-## 🛠️ Tech Stack
-- **Framework**: Laravel 12
-- **Language**: PHP 8.2+
-- **Database**: MySQL / MariaDB
-- **Auth**: Laravel Sanctum (Token based)
-- **Tools**: Composer, Artisan, XAMPP (untuk database)
+## Fitur Utama
 
-## 📋 Prasyarat
+- Autentikasi: Sistem login aman menggunakan Laravel Sanctum (Token-based).
+- Manajemen User: CRUD user dengan dua role (Admin dan Resepsionis), termasuk kontrol status aktif/non-aktif.
+- Manajemen Pengunjung (Visitor): Pencatatan tamu masuk (self check-in), pemantauan status (menunggu, berkunjung, selesai), dan check-out oleh resepsionis.
+- Sistem Feedback: Pengumpulan rating (1-5) dan komentar dari pengunjung, terhubung langsung ke data tamu melalui relasi `visitor_id`.
+- Dashboard Ringkasan: Statistik real-time, tren pengunjung 7 hari terakhir, dan breakdown rating.
+- Manajemen Profil: Ganti password, update info profil, dan upload foto (avatar).
+
+---
+
+## Tech Stack
+
+| Kategori | Teknologi |
+|----------|-----------|
+| Framework | Laravel 12 |
+| Language | PHP 8.2+ |
+| Database | MySQL / MariaDB |
+| Auth | Laravel Sanctum (Token-based) |
+| Containerization | Docker (multi-stage build) |
+| Tools | Composer, Artisan, XAMPP (lokal) |
+
+---
+
+## Prasyarat
+
 - PHP >= 8.2
 - Composer
 - MySQL/MariaDB (disarankan menggunakan XAMPP)
 - Git
+- Docker (opsional, untuk deployment)
 
-## ⚙️ Cara Setup & Instalasi
+---
+
+## Cara Setup dan Instalasi
 
 ### 1. Clone Repositori
+
 ```bash
-git clone [repository-url]
+git clone <repository-url>
 cd backend-butaka
 ```
 
 ### 2. Instalasi Dependency
-Gunakan composer untuk mengunduh library Laravel:
+
 ```bash
 composer install
 ```
 
 ### 3. Konfigurasi Environment
+
 Salin file `.env.example` menjadi `.env`:
+
 ```bash
 cp .env.example .env
 ```
-Buka file `.env` dan sesuaikan konfigurasi database Anda:
+
+Buka file `.env` dan sesuaikan konfigurasi database:
+
 ```env
 DB_CONNECTION=mysql
 DB_HOST=127.0.0.1
@@ -53,30 +73,209 @@ DB_PASSWORD=
 ```
 
 ### 4. Generate App Key
+
 ```bash
 php artisan key:generate
 ```
 
-### 5. Migrasi & Seeder Database
-Pastikan server database (MySQL) Anda sudah berjalan, lalu jalankan perintah berikut:
+### 5. Migrasi dan Seeder Database
+
+Pastikan server database (MySQL) sudah berjalan, lalu jalankan:
+
 ```bash
 php artisan migrate --seed
 ```
-> **Catatan**: `--seed` akan mengisi database dengan data dummy awal untuk Admin, Resepsionis, dan sampel tamu.
+
+Perintah ini akan menjalankan tiga buah seeder secara berurutan:
+
+| Seeder | Keterangan |
+|--------|------------|
+| `UserSeeder` | Membuat 1 Admin dan 3 Resepsionis (1 non-aktif) |
+| `VisitorSeeder` | Membuat 20 data tamu dummy menggunakan Faker dengan locale id_ID (Indonesia) |
+| `FeedbackSeeder` | Membuat feedback untuk tamu yang berstatus "selesai", terhubung via `visitor_id` |
+
+Jika ingin menjalankan seeder secara terpisah:
+
+```bash
+php artisan db:seed --class=UserSeeder
+php artisan db:seed --class=VisitorSeeder
+php artisan db:seed --class=FeedbackSeeder
+```
+
+Jika ingin reset seluruh database dan isi ulang data:
+
+```bash
+php artisan migrate:refresh --seed
+```
 
 ### 6. Jalankan Server
+
 ```bash
 php artisan serve
 ```
+
 API akan berjalan di `http://localhost:8000`.
 
-## 📖 Dokumentasi API
-Detail lengkap mengenai setiap endpoint, request body, dan contoh response dapat dilihat pada file:
-👉 [**API_DOCUMENTATION.md**](./API_DOCUMENTATION.md)
+---
 
-## 📁 Struktur Direktori Penting
-- `app/Http/Controllers/Api`: Logika utama untuk setiap fitur API.
-- `app/Models`: Definisi skema tabel database.
-- `routes/api.php`: Definisi seluruh endpoint API.
-- `database/migrations`: Skrip pembuatan tabel database.
-- `database/seeders`: Data sampel untuk pengujian awal.
+## Akun Default
+
+| Role | Email | Password |
+|------|-------|----------|
+| Admin | admin@butaka.com | password |
+| Resepsionis 1 | resepsionis1@butaka.com | password |
+| Resepsionis 2 | resepsionis2@butaka.com | password |
+
+---
+
+## API Endpoints
+
+### Public Routes (Tanpa Login)
+
+| Method | Endpoint | Deskripsi |
+|--------|----------|-----------|
+| POST | `/api/auth/login` | Login dan dapatkan token |
+| POST | `/api/visitors` | Self check-in tamu |
+| POST | `/api/feedback` | Submit feedback |
+| GET | `/api/visitors/list` | Daftar nama tamu (untuk dropdown feedback) |
+| GET | `/api/visitors/recent` | Pengunjung terbaru (untuk landing page) |
+
+### Protected Routes - Auth Management
+
+| Method | Endpoint | Deskripsi |
+|--------|----------|-----------|
+| POST | `/api/auth/logout` | Logout |
+| GET | `/api/auth/me` | Profile user saat ini |
+| PUT | `/api/auth/profile` | Update profil |
+| POST | `/api/auth/change-password` | Ganti password |
+| POST | `/api/auth/upload-avatar` | Upload foto profil |
+| POST | `/api/auth/register` | Registrasi user baru (Admin only) |
+
+### Protected Routes - Visitor Management
+
+| Method | Endpoint | Akses | Deskripsi |
+|--------|----------|-------|-----------|
+| GET | `/api/visitors` | Staff | List semua pengunjung |
+| GET | `/api/visitors/{id}` | Staff | Detail pengunjung |
+| PUT | `/api/visitors/{id}` | Staff | Update data pengunjung |
+| PUT | `/api/visitors/{id}/status` | Staff | Update status pengunjung |
+| POST | `/api/visitors/{id}/checkout` | Staff | Check-out pengunjung |
+| DELETE | `/api/visitors/{id}` | Admin | Hapus data pengunjung |
+
+### Protected Routes - Feedback (Admin Only)
+
+| Method | Endpoint | Deskripsi |
+|--------|----------|-----------|
+| GET | `/api/feedback` | List semua feedback |
+| GET | `/api/feedback/{id}` | Detail feedback |
+| DELETE | `/api/feedback/{id}` | Hapus feedback |
+
+### Protected Routes - Dashboard (Admin Only)
+
+| Method | Endpoint | Deskripsi |
+|--------|----------|-----------|
+| GET | `/api/dashboard/stats` | Statistik umum |
+| GET | `/api/dashboard/recent-visitors` | 5 pengunjung terakhir |
+| GET | `/api/dashboard/rating-breakdown` | Distribusi rating |
+| GET | `/api/dashboard/visitor-trends` | Tren pengunjung 7 hari |
+
+### Protected Routes - User Management (Admin Only)
+
+| Method | Endpoint | Deskripsi |
+|--------|----------|-----------|
+| GET | `/api/users` | List semua user |
+| POST | `/api/users` | Buat user baru |
+| GET | `/api/users/{id}` | Detail user |
+| PUT | `/api/users/{id}` | Update user |
+| DELETE | `/api/users/{id}` | Hapus user |
+
+---
+
+## Struktur Direktori Penting
+
+```
+backend-butaka/
+├── app/
+│   ├── Http/Controllers/Api/     # Controller untuk setiap fitur API
+│   │   ├── AuthController.php
+│   │   ├── UserController.php
+│   │   ├── VisitorController.php
+│   │   ├── FeedbackController.php
+│   │   └── DashboardController.php
+│   └── Models/                   # Definisi model database
+│       ├── User.php
+│       ├── Visitor.php
+│       └── Feedback.php
+├── database/
+│   ├── migrations/               # Skrip pembuatan tabel
+│   └── seeders/                  # Data dummy untuk pengujian
+│       ├── UserSeeder.php
+│       ├── VisitorSeeder.php     # Faker id_ID, 20 data acak
+│       └── FeedbackSeeder.php    # Relasi ke visitor_id
+├── routes/
+│   └── api.php                   # Definisi seluruh endpoint API
+├── docker/                       # Konfigurasi Docker
+│   ├── nginx.conf
+│   ├── supervisord.conf
+│   └── entrypoint.sh
+├── Dockerfile                    # Multi-stage Docker build
+└── .env.example                  # Template konfigurasi environment
+```
+
+---
+
+## Docker (Deployment)
+
+Proyek ini sudah dilengkapi `Dockerfile` multi-stage untuk deployment ke platform seperti Render.com.
+
+### Build Docker Image
+
+```bash
+docker build -t butaka-backend .
+```
+
+### Jalankan Container
+
+```bash
+docker run -p 80:80 --env-file .env butaka-backend
+```
+
+Pastikan variabel environment berikut sudah dikonfigurasi untuk production:
+
+```env
+APP_ENV=production
+APP_DEBUG=false
+APP_KEY=<generated-key>
+DB_CONNECTION=mysql
+DB_HOST=<host>
+DB_PORT=3306
+DB_DATABASE=<database>
+DB_USERNAME=<username>
+DB_PASSWORD=<password>
+```
+
+---
+
+## Skema Database
+
+### Tabel `users`
+- id, name, avatar, email, password, role (admin/resepsionis), is_active
+
+### Tabel `visitors`
+- id, name, phone, email, purpose, host_name, institution, status (menunggu/berkunjung/selesai), check_in_time, check_out_time
+
+### Tabel `feedback`
+- id, visitor_id (FK ke visitors), rating (1-5), comment, created_at
+
+---
+
+## Dokumentasi API Lengkap
+
+Detail lengkap mengenai setiap endpoint, request body, dan contoh response dapat dilihat pada file:
+[API_DOCUMENTATION.md](./API_DOCUMENTATION.md)
+
+---
+
+## License
+
+2025 BuTaKa - Project Magang

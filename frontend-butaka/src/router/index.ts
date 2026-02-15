@@ -63,6 +63,11 @@ const router = createRouter({
                 }
             ],
             meta: { requiresAuth: true, role: 'resepsionis' }
+        },
+        {
+            path: '/:pathMatch(.*)*',
+            name: 'not-found',
+            component: () => import('../components/error/NotFoundView.vue')
         }
     ]
 })

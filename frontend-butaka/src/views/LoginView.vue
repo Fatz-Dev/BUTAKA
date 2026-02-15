@@ -73,8 +73,8 @@ const handleLogin = async () => {
                 <div class="card-body">
                   <router-link to="/" class="navbar-brand d-flex align-items-center mb-3">
                     <!--Logo start-->
-                    <img src="/assets/images/logo-new.png" alt="logo"
-                      class="img-fluid avatar avatar-40 animated-scaleX avatar-rounded">
+                    <img src="/assets/images/logo-new.png" alt="logo" class="img-fluid me-2"
+                      style="height: 40px; object-fit: contain;">
                     <!--logo End-->
                     <h4 class="logo-title" style="font-size: 24px;">BuTaKa</h4>
                   </router-link>
@@ -134,7 +134,8 @@ const handleLogin = async () => {
         <div class="col-md-6 d-md-block d-none bg-primary p-0 mt-n1 vh-100 overflow-hidden">
           <img src="/assets/images/auth/01.png" class="img-fluid gradient-main animated-scaleX" alt="images">
           <img src="/assets/images/logo-new.png" alt="User-Profile"
-            class="img-fluid bg-[#ffffff] p-2 avatar avatar-100 animated-scaleX avatar-rounded position-absolute top-50 start-50 translate-middle">
+            class="img-fluid bg-white p-2 avatar avatar-100 animated-scaleX rounded position-absolute top-50 start-50 translate-middle shadow-lg"
+            style="object-fit: contain;">
         </div>
       </div>
     </section>

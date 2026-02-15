@@ -3,7 +3,9 @@
 namespace Database\Seeders;
 
 use App\Models\Feedback;
+use App\Models\Visitor;
 use Illuminate\Database\Seeder;
+use Faker\Factory as Faker;
 
 class FeedbackSeeder extends Seeder
 {
@@ -12,65 +14,26 @@ class FeedbackSeeder extends Seeder
      */
     public function run(): void
     {
-        // Feedback dengan rating tinggi
-        Feedback::create([
-            'name' => 'Budi Santoso',
-            'institution' => 'PT Maju Jaya',
-            'rating' => 5,
-            'comment' => 'Pelayanan sangat memuaskan! Resepsionis sangat ramah dan proses check-in cepat.',
-        ]);
+        $faker = Faker::create('id_ID');
 
-        Feedback::create([
-            'name' => 'Siti Aminah',
-            'institution' => 'CV Berkah Abadi',
-            'rating' => 5,
-            'comment' => 'Sangat terbantu dengan sistem antrian yang rapi. Terima kasih!',
-        ]);
+        // Get visitors who have completed their visit
+        $completedVisitors = Visitor::where('status', 'selesai')->pluck('id')->toArray();
 
-        Feedback::create([
-            'name' => 'Rahmat Hidayat',
-            'institution' => 'PT Teknologi Indonesia',
-            'rating' => 4,
-            'comment' => 'Pelayanan bagus, ruang tunggu nyaman.',
-        ]);
+        // If no visitors, we can't seed feedback effectively linked to them
+        if (empty($completedVisitors)) {
+            return;
+        }
 
-        // Feedback dengan rating sedang
-        Feedback::create([
-            'name' => 'Dewi Lestari',
-            'institution' => null,
-            'rating' => 3,
-            'comment' => 'Cukup baik, tapi waktu tunggu agak lama.',
-        ]);
-
-        Feedback::create([
-            'name' => 'Eko Prasetyo',
-            'institution' => 'Kantor Akuntan Publik ABC',
-            'rating' => 3,
-            'comment' => 'Standar pelayanan sudah cukup baik.',
-        ]);
-
-        // Feedback dengan rating rendah
-        Feedback::create([
-            'name' => 'Ahmad Fauzi',
-            'institution' => null,
-            'rating' => 2,
-            'comment' => 'Perlu ditingkatkan lagi pelayanannya.',
-        ]);
-
-        // Feedback tanpa komentar
-        Feedback::create([
-            'name' => 'Rina Wulandari',
-            'institution' => 'Toko Sejahtera',
-            'rating' => 4,
-            'comment' => null,
-        ]);
-
-        // Feedback anonim
-        Feedback::create([
-            'name' => null,
-            'institution' => null,
-            'rating' => 5,
-            'comment' => 'Mantap! Lanjutkan!',
-        ]);
+        // Generate feedback for about 70% of completed visits
+        foreach ($completedVisitors as $visitorId) {
+            if ($faker->boolean(70)) {
+                Feedback::create([
+                    'visitor_id' => $visitorId,
+                    'rating' => $faker->numberBetween(3, 5), // Mostly positive feedback
+                    'comment' => $faker->optional(0.8)->sentence(10), // 80% have comments
+                    'created_at' => $faker->dateTimeBetween('-1 month', 'now'),
+                ]);
+            }
+        }
     }
 }

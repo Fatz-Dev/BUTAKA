@@ -1,21 +1,79 @@
 <script setup lang="ts">
-import DashboardLayout from '../../components/layout/DashboardLayout.vue'
 import { ref, computed, onMounted } from 'vue'
+import DashboardLayout from '../../components/layout/DashboardLayout.vue'
 import { useGuestLogsStore } from '../../stores/guestLogs'
+import VueApexCharts from 'vue3-apexcharts'
+import type { ApexOptions } from 'apexcharts'
 
 const guestLogsStore = useGuestLogsStore()
 
 const stats = computed(() => {
   const allLogs = guestLogsStore.logs
-  const activeCount = allLogs.filter(l => l.status === 'aktif').length
+  const activeCount = allLogs.filter(l => ['berkunjung', 'menunggu'].includes(l.status)).length
   const totalLogs = allLogs.length
 
-  return [
-    { title: 'Tamu Hari Ini', value: totalLogs, icon: 'fa fa-users', colorClass: 'circle-progress-primary' },
-    { title: 'Tamu Aktif', value: activeCount, icon: 'fa fa-user-check', colorClass: 'circle-progress-success' },
-    { title: 'Total Kunjungan', value: totalLogs, icon: 'fa fa-history', colorClass: 'circle-progress-info' },
-    { title: 'Rata-rata Rating', value: 4.8, icon: 'fa fa-star', colorClass: 'circle-progress-warning' }
-  ]
+  // Mock data for trends (since we don't have historical API yet) - Random fluctuations
+  const sparklineData = Array.from({ length: 10 }, () => Math.floor(Math.random() * (15 - 5 + 1) + 5))
+  const barData = Array.from({ length: 7 }, () => Math.floor(Math.random() * (20 - 5 + 1) + 5))
+
+  return {
+    totalVisits: {
+      value: totalLogs,
+      series: [{ name: 'Visits', data: sparklineData }],
+      chartOptions: {
+        chart: { type: 'area', sparkline: { enabled: true } },
+        stroke: { curve: 'smooth', width: 2 },
+        fill: { opacity: 0.3 },
+        colors: ['#1d4ed8'],
+        tooltip: { fixed: { enabled: false }, x: { show: false }, marker: { show: false } }
+      } as ApexOptions
+    },
+    activeVisitors: {
+      value: activeCount,
+      series: [Math.min((activeCount / 50) * 100, 100)], // Assuming capacity ~50 for demo
+      chartOptions: {
+        chart: { type: 'radialBar', sparkline: { enabled: true } },
+        plotOptions: {
+          radialBar: {
+            hollow: { size: '60%' },
+            dataLabels: { show: false },
+            track: { background: '#f1f5f9' }
+          }
+        },
+        colors: ['#10b981'],
+        stroke: { lineCap: 'round' }
+      } as ApexOptions
+    },
+    todayVisits: {
+      value: allLogs.filter(l => {
+        const today = new Date().toISOString().split('T')[0]
+        return l.check_in_time && l.check_in_time.startsWith(today)
+      }).length, // Actual today count from store
+      series: [{ name: 'Today', data: barData }],
+      chartOptions: {
+        chart: { type: 'bar', sparkline: { enabled: true } },
+        plotOptions: { bar: { borderRadius: 3, columnWidth: '60%' } },
+        colors: ['#0ea5e9'],
+        tooltip: { fixed: { enabled: false }, x: { show: false } }
+      } as ApexOptions
+    },
+    rating: {
+      value: 4.8,
+      series: [96], // 4.8 * 20
+      chartOptions: {
+        chart: { type: 'radialBar', sparkline: { enabled: true } },
+        plotOptions: {
+          radialBar: {
+            hollow: { size: '60%' },
+            dataLabels: { show: false },
+            track: { background: '#f1f5f9' }
+          }
+        },
+        colors: ['#f59e0b'],
+        stroke: { lineCap: 'round' }
+      } as ApexOptions
+    }
+  }
 })
 
 // System summary data
@@ -28,10 +86,10 @@ const systemStatus = ref([
 const recentVisitors = computed(() => {
   return guestLogsStore.logs.slice(0, 5).map(l => ({
     name: l.name,
-    institution: l.institution || l.instansi || '-',
+    institution: l.institution || l.instansi,
     host_name: l.host_name,
     purpose: l.purpose,
-    check_in_time: l.check_in_time || l.created_at || '-',
+    check_in_time: l.check_in_time || l.created_at,
     status: l.status
   }))
 })
@@ -46,8 +104,8 @@ const currentDate = computed(() => {
   return new Date().toLocaleDateString('id-ID', options)
 })
 
-const formatDate = (dateString: string) => {
-  if (!dateString || dateString === '-') return '-'
+const formatDate = (dateString: string | undefined | null) => {
+  if (!dateString) return ''
   try {
     const date = new Date(dateString)
     return new Intl.DateTimeFormat('id-ID', {
@@ -100,18 +158,88 @@ onMounted(async () => {
 
     <!-- Statistics Cards -->
     <div class="row">
-      <div v-for="(stat, index) in stats" :key="stat.title" class="col-md-6 col-lg-3">
-        <div class="card card-slide" data-aos="fade-up" :data-aos-delay="(index + 1) * 100">
-          <div class="card-body">
-            <div class="progress-widget">
-              <div class="text-center circle-progress-01 circle-progress mb-3" :class="stat.colorClass"
-                style="width: 80px; height: 80px; margin: 0 auto">
-                <i :class="stat.icon" style="font-size: 32px; line-height: 80px"></i>
+      <!-- Total Visits (Sparkline) -->
+      <div class="col-md-6 col-lg-3 d-flex">
+        <div class="card card-slide w-100 h-40" data-aos="fade-up" data-aos-delay="100">
+          <div class="card-body d-flex flex-column">
+            <div class="d-flex justify-content-between align-items-start mb-4">
+              <div>
+                <p class="mb-0 text-muted">Total Kunjungan</p>
+                <h3 class="mb-0 counter">{{ stats.totalVisits.value }}</h3>
               </div>
-              <div class="progress-detail text-center">
-                <p class="mb-2 text-muted">{{ stat.title }}</p>
-                <h3 class="counter mb-0">{{ stat.value }}</h3>
+              <div class="p-3 bg-soft-primary rounded-circle">
+                <i class="fa fa-users text-primary"></i>
               </div>
+            </div>
+            <div class="mt-auto d-flex align-items-end" style="height: 120px;">
+              <VueApexCharts type="area" height="60" width="100%" :options="stats.totalVisits.chartOptions"
+                :series="stats.totalVisits.series"></VueApexCharts>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Active Visitors (Radial Bar) -->
+      <div class="col-md-6 col-lg-3 d-flex">
+        <div class="card card-slide w-100 h-40" data-aos="fade-up" data-aos-delay="200">
+          <div class="card-body d-flex flex-column">
+            <div class="d-flex justify-content-between align-items-start mb-4">
+              <div>
+                <p class="mb-0 text-muted">Tamu Aktif</p>
+                <h3 class="mb-0 counter">{{ stats.activeVisitors.value }}</h3>
+                <small class="text-success" style="font-size: 0.75rem;"><i class="fa fa-arrow-up me-1"></i>Sedang
+                  berkunjung</small>
+              </div>
+              <div class="p-3 bg-soft-success rounded-circle">
+                <i class="fa fa-user-clock text-success"></i>
+              </div>
+            </div>
+            <div class="mt-auto d-flex justify-content-center align-items-center" style="height: 120px;">
+              <VueApexCharts type="radialBar" height="150" :options="stats.activeVisitors.chartOptions"
+                :series="stats.activeVisitors.series"></VueApexCharts>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Today's Visits (Bar) -->
+      <div class="col-md-6 col-lg-3 d-flex">
+        <div class="card card-slide w-100 h-40" data-aos="fade-up" data-aos-delay="300">
+          <div class="card-body d-flex flex-column">
+            <div class="d-flex justify-content-between align-items-start mb-4">
+              <div>
+                <p class="mb-0 text-muted">Kunjungan Hari Ini</p>
+                <h3 class="mb-0 counter">{{ stats.todayVisits.value }}</h3>
+              </div>
+              <div class="p-3 bg-soft-info rounded-circle">
+                <i class="fa fa-calendar-day text-info"></i>
+              </div>
+            </div>
+            <div class="mt-auto d-flex align-items-end" style="height: 120px;">
+              <VueApexCharts type="bar" height="60" width="100%" :options="stats.todayVisits.chartOptions"
+                :series="stats.todayVisits.series"></VueApexCharts>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Rating (Radial Bar) -->
+      <div class="col-md-6 col-lg-3 d-flex">
+        <div class="card card-slide w-100 h-40" data-aos="fade-up" data-aos-delay="400">
+          <div class="card-body d-flex flex-column">
+            <div class="d-flex justify-content-between align-items-start mb-4">
+              <div>
+                <p class="mb-0 text-muted">Rata-rata Rating</p>
+                <h3 class="mb-0 counter">{{ stats.rating.value }}</h3>
+                <small class="text-warning" style="font-size: 0.75rem;"><i class="fa fa-star me-1"></i>dari 5.0</small>
+              </div>
+              <div class="p-3 bg-soft-warning rounded-circle">
+                <i class="fa fa-star text-warning"></i>
+              </div>
+            </div>
+            <div class="mt-auto d-flex justify-content-center align-items-center" style="height: 120px;">
+              <VueApexCharts type="radialBar" height="150" :options="stats.rating.chartOptions"
+                :series="stats.rating.series"></VueApexCharts>
             </div>
           </div>
         </div>
@@ -150,7 +278,7 @@ onMounted(async () => {
               <h4 class="card-title">Ringkasan Sistem</h4>
             </div>
           </div>
-          <div class="card-body">
+          <div class="card-body mb-16">
             <ul class="list-group list-group-flush">
               <li v-for="item in systemStatus" :key="item.label"
                 class="list-group-item d-flex justify-content-between align-items-center bg-transparent">
@@ -193,7 +321,7 @@ onMounted(async () => {
                   <tr v-for="(visitor, index) in recentVisitors" :key="visitor.name + visitor.check_in_time">
                     <td>{{ index + 1 }}</td>
                     <td>
-                      <span class="fw-medium text-primary">{{ visitor.name }}</span>
+                      <span class="fw-medium">{{ visitor.name }}</span>
                     </td>
                     <td>{{ visitor.institution }}</td>
                     <td><small class="text-muted"><i class="fa fa-user-tie me-1"></i>{{ visitor.host_name }}</small>

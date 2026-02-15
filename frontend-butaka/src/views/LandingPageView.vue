@@ -1,6 +1,6 @@
 <script setup lang="ts">
-import { ref, onMounted } from 'vue'
-import { Moon, Sun, BookOpen } from 'lucide-vue-next'
+import { ref, onMounted, onUnmounted, computed } from 'vue'
+import { Moon, Sun } from 'lucide-vue-next'
 import { useGuestLogsStore } from '../stores/guestLogs'
 import { useFeedbackStore } from '../stores/feedback'
 import Swal from 'sweetalert2'
@@ -23,11 +23,40 @@ const guestForm = ref({
 
 // form feedback
 const feedbackForm = ref({
-    nama: '',
-    instansi: '',
+    visitor_id: 0,
     rating: 0,
     pesan: ''
 })
+
+const visitors = ref<any[]>([])
+const selectedVisitor = ref<any>(null)
+const visitorSearch = ref('')
+const isVisitorDropdownOpen = ref(false)
+
+const filteredVisitors = computed(() => {
+    if (!visitorSearch.value) return visitors.value
+    const search = visitorSearch.value.toLowerCase()
+    return visitors.value.filter(v =>
+        v.name.toLowerCase().includes(search) ||
+        (v.institution && v.institution.toLowerCase().includes(search))
+    )
+})
+
+const selectVisitor = (visitor: any) => {
+    feedbackForm.value.visitor_id = visitor.id
+    selectedVisitor.value = visitor
+    visitorSearch.value = visitor.name
+    isVisitorDropdownOpen.value = false
+}
+
+const fetchVisitorsForFeedback = async () => {
+    try {
+        const response = await (await import('../services/api')).visitorsApi.getVisitorList()
+        visitors.value = response.data.data || response.data || []
+    } catch (err) {
+        console.error('Failed to fetch visitors:', err)
+    }
+}
 
 const ratingLabel = ref('Pilih Bintang')
 const ratingLabels = ['Sangat Buruk', 'Buruk', 'Biasa Saja', 'Sangat Baik', 'Luar Biasa!']
@@ -64,6 +93,8 @@ const submitGuest = async () => {
             timerProgressBar: true
         })
         guestForm.value = { name: '', institution: '', phone: '', email: '', host_name: '', purpose: '' }
+        // Refresh visitors list after new guest registers
+        fetchVisitorsForFeedback()
     } else {
         Swal.fire({
             icon: 'error',
@@ -75,6 +106,16 @@ const submitGuest = async () => {
 }
 
 const submitFeedback = async () => {
+    if (feedbackForm.value.visitor_id === 0) {
+        Swal.fire({
+            icon: 'warning',
+            title: 'Peringatan',
+            text: 'Silakan pilih nama Anda terlebih dahulu.',
+            confirmButtonColor: '#3a57e8'
+        })
+        return
+    }
+
     if (feedbackForm.value.rating === 0) {
         Swal.fire({
             icon: 'warning',
@@ -87,8 +128,7 @@ const submitFeedback = async () => {
 
     isSubmittingFeedback.value = true
     const result = await feedbackStore.addFeedback({
-        name: feedbackForm.value.nama,
-        institution: feedbackForm.value.instansi,
+        visitor_id: feedbackForm.value.visitor_id,
         rating: feedbackForm.value.rating,
         comment: feedbackForm.value.pesan
     })
@@ -103,7 +143,8 @@ const submitFeedback = async () => {
             timer: 2000,
             timerProgressBar: true
         })
-        feedbackForm.value = { nama: '', instansi: '', rating: 0, pesan: '' }
+        feedbackForm.value = { visitor_id: 0, rating: 0, pesan: '' }
+        selectedVisitor.value = null
         ratingLabel.value = 'Pilih Bintang'
     } else {
         Swal.fire({
@@ -115,6 +156,13 @@ const submitFeedback = async () => {
     }
 }
 
+const handleClickOutside = (e: MouseEvent) => {
+    const target = e.target as HTMLElement
+    if (!target.closest('.relative')) {
+        isVisitorDropdownOpen.value = false
+    }
+}
+
 onMounted(() => {
     const savedTheme = localStorage.getItem('theme')
     if (savedTheme === 'dark' || (!savedTheme && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
@@ -122,10 +170,20 @@ onMounted(() => {
         document.documentElement.classList.add('dark')
     }
 
+    // fetch visitors for feedback
+    fetchVisitorsForFeedback()
+
+    // click outside to close dropdown
+    window.addEventListener('click', handleClickOutside)
+
     // untuk animasi
     if ((window as any).AOS) {
         (window as any).AOS.init();
     }
+})
+
+onUnmounted(() => {
+    window.removeEventListener('click', handleClickOutside)
 })
 </script>
 
@@ -253,13 +311,34 @@ onMounted(() => {
                 <form @submit.prevent="submitFeedback" class="p-8 space-y-6">
                     <div class="grid md:grid-cols-2 gap-6">
                         <div class="space-y-2">
-                            <label class="text-sm font-semibold text-slate-700 dark:text-slate-300">Nama Lengkap</label>
+                            <label class="text-sm font-semibold text-slate-700 dark:text-slate-300">Pilih Nama
+                                Anda</label>
                             <div class="relative">
                                 <span
-                                    class="material-symbols-outlined absolute left-4 top-3.5 text-slate-400 text-[20px]">person</span>
-                                <input v-model="feedbackForm.nama" type="text"
-                                    class="w-full pl-11 pr-4 py-3 bg-white dark:!bg-[#151824] border border-slate-200 dark:border-[#30384f] rounded-lg focus:ring-2 focus:ring-[#3a57e8] focus:border-[#3a57e8] outline-none transition-all dark:text-white"
-                                    placeholder="Masukkan nama Anda" required />
+                                    class="material-symbols-outlined absolute left-4 top-3.5 text-slate-400 text-[20px] z-10">person</span>
+                                <input v-model="visitorSearch" type="text" @focus="isVisitorDropdownOpen = true"
+                                    class="w-full pl-11 pr-10 py-3 bg-white dark:!bg-[#151824] border border-slate-200 dark:border-[#30384f] rounded-lg focus:ring-2 focus:ring-[#3a57e8]/20 focus:border-[#3a57e8] outline-none transition-all dark:text-white cursor-pointer"
+                                    placeholder="Cari atau pilih nama Anda..." />
+                                <span
+                                    class="material-symbols-outlined absolute right-4 top-3.5 text-slate-400 pointer-events-none transition-transform duration-200"
+                                    :class="{ 'rotate-180': isVisitorDropdownOpen }">expand_more</span>
+
+                                <!-- Dropdown List -->
+                                <div v-if="isVisitorDropdownOpen"
+                                    class="absolute z-50 w-full mt-2 bg-white dark:!bg-[#1a1d2d] border border-slate-200 dark:border-[#30384f] rounded-lg shadow-xl max-h-60 overflow-y-auto overflow-x-hidden animate-in fade-in slide-in-from-top-2 duration-200">
+                                    <div v-if="filteredVisitors.length === 0"
+                                        class="p-4 text-center text-slate-500 text-sm">
+                                        Nama tidak ditemukan
+                                    </div>
+                                    <button v-for="v in filteredVisitors" :key="v.id" type="button"
+                                        @click="selectVisitor(v)"
+                                        class="w-full text-left px-4 py-3 hover:bg-slate-50 dark:hover:bg-[#24283b] flex flex-col border-b border-slate-50 last:border-0 dark:border-[#30384f]/30 transition-colors">
+                                        <span class="font-semibold text-slate-700 dark:text-slate-100">{{ v.name
+                                        }}</span>
+                                        <span class="text-xs text-slate-400 dark:text-slate-500">Dari : {{ v.institution
+                                            }}</span>
+                                    </button>
+                                </div>
                             </div>
                         </div>
                         <div class="space-y-2">
@@ -268,9 +347,9 @@ onMounted(() => {
                             <div class="relative">
                                 <span
                                     class="material-symbols-outlined absolute left-4 top-3.5 text-slate-400 text-[20px]">apartment</span>
-                                <input v-model="feedbackForm.instansi" type="text"
-                                    class="w-full pl-11 pr-4 py-3 bg-white dark:!bg-[#151824] border border-slate-200 dark:border-[#30384f] rounded-lg focus:ring-2 focus:ring-[#3a57e8] focus:border-[#3a57e8] outline-none transition-all dark:text-white"
-                                    placeholder="Pekerjaan atau organisasi" />
+                                <input :value="selectedVisitor?.institution || '-'" type="text"
+                                    class="w-full pl-11 pr-4 py-3 bg-slate-50 dark:!bg-[#1a1d2d] border border-slate-200 dark:border-[#30384f] rounded-lg outline-none transition-all dark:text-slate-400 cursor-not-allowed"
+                                    placeholder="Otomatis terisi" readonly />
                             </div>
                         </div>
                     </div>
@@ -282,7 +361,7 @@ onMounted(() => {
                             <button v-for="i in 5" :key="i" type="button" @click="setRating(i)"
                                 class="transition-transform hover:scale-110 focus:outline-none">
                                 <span class="material-symbols-outlined text-[40px]"
-                                    :class="i <= feedbackForm.rating ? 'text-amber-400 fill-current' : 'text-slate-200 dark:text-slate-700'">star</span>
+                                    :class="i <= feedbackForm.rating ? 'text-amber-400 fill-current' : 'text-slate-300 dark:text-slate-700'">star</span>
                             </button>
                         </div>
                         <p class="text-sm font-semibold text-[#3a57e8] dark:text-blue-400 h-6">{{ feedbackForm.rating >
@@ -310,7 +389,6 @@ onMounted(() => {
             <div class="max-w-7xl mx-auto px-6 md:px-12 flex flex-col md:flex-row justify-between items-center gap-4">
                 <div class="flex items-center gap-4 opacity-90">
                     <div class="flex items-center gap-2 font-semibold">
-                        <BookOpen :size="18" />
                         <span class="tracking-tight">BuTaKa</span>
                     </div>
                     <span class="hidden md:inline opacity-30">|</span>
@@ -337,5 +415,16 @@ onMounted(() => {
 
 .text-amber-400.fill-current {
     font-variation-settings: 'FILL' 1;
+}
+
+.custom-select-arrow {
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%2394a3b8'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M19 9l-7 7-7-7'%3E%3C/path%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 1rem center;
+    background-size: 1.25em;
+}
+
+.dark .custom-select-arrow {
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%2364748b'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M19 9l-7 7-7-7'%3E%3C/path%3E%3C/svg%3E");
 }
 </style>

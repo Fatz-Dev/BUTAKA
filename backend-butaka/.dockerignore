@@ -1,0 +1,41 @@
+# Version control
+.git
+.gitignore
+.gitattributes
+
+# Dependencies (installed during build)
+vendor
+node_modules
+
+# Environment files
+.env
+
+# IDE / Editor
+.editorconfig
+.idea
+.vscode
+*.swp
+*.swo
+
+# OS files
+Thumbs.db
+.DS_Store
+
+# Documentation
+README.md
+markdown/
+
+# Testing
+tests
+phpunit.xml
+.phpunit.result.cache
+
+# Docker (prevent recursive copy)
+docker-compose.yml
+docker-compose.override.yml
+
+# Misc
+storage/logs/*
+storage/framework/cache/data/*
+storage/framework/sessions/*
+storage/framework/views/*
