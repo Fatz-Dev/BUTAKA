@@ -15,7 +15,7 @@ Fitur utama sistem ini meliputi:
 - Sistem umpan balik (feedback) pengunjung terintegrasi.
 - Manajemen akun staff (Admin dan Resepsionis).
 
-Fitur-fitur terbaru yang telah ditambahkan:
+Fitur-fitur terbaru yang telah ditambahkan berdasarkan saran penguji magang:
 - **Pembaruan Branding**: Logo sistem telah diperbarui menggunakan Logo Kota Banda Aceh untuk identitas yang lebih resmi.
 - **Filter Lanjutan Admin**: Panel admin kini dilengkapi fitur filter pada daftar feedback dan log kunjungan tamu untuk mempermudah pencarian data.
 - **Dropdown Pengunjung Dinamis**: Form feedback kini menggunakan dropdown pencarian yang hanya menampilkan daftar tamu yang memang benar-benar telah berkunjung.
