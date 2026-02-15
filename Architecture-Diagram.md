@@ -9,7 +9,7 @@ BUTAKA (Buku Tamu Kantor) adalah aplikasi web manajemen pengunjung yang mengguna
 
 ### Arsitektur Layer
 
-#### 🖥️ PRESENTATION LAYER
+#### PRESENTATION LAYER
 **Komponen:** Client Browser
 
 Ini adalah layer yang berinteraksi langsung dengan pengguna. Pengguna mengakses aplikasi melalui web browser yang menampilkan antarmuka pengguna (UI).
@@ -21,7 +21,7 @@ Ini adalah layer yang berinteraksi langsung dengan pengguna. Pengguna mengakses 
 
 ---
 
-#### ⚛️ BUTAKA FRONTEND (Vue.js Application)
+#### BUTAKA FRONTEND (Vue.js Application)
 **Teknologi:** Vue 3 + Vite + TypeScript + Pinia + Axios
 
 Frontend aplikasi yang berjalan di browser pengguna. Menggunakan arsitektur SPA (Single Page Application).
@@ -41,7 +41,7 @@ Frontend aplikasi yang berjalan di browser pengguna. Menggunakan arsitektur SPA 
 
 ---
 
-#### 🔧 SERVICE LAYER
+#### SERVICE LAYER
 **Komponen:** BUTAKA Backend (Laravel REST API)
 
 Backend aplikasi yang menangani logika bisnis dan menyediakan API endpoints.
@@ -70,7 +70,7 @@ Backend aplikasi yang menangani logika bisnis dan menyediakan API endpoints.
 
 ---
 
-#### 💾 DATA LAYER
+#### DATA LAYER
 **Komponen:** SQLite Database
 
 Layer penyimpanan data persisten aplikasi.
