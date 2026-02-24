@@ -15,8 +15,12 @@ Fitur utama sistem ini meliputi:
 - Sistem umpan balik (feedback) pengunjung terintegrasi.
 - Manajemen akun staff (Admin dan Resepsionis).
 
+<<<<<<< HEAD
 Fitur-fitur terbaru yang telah ditambahkan:
 - **Single URL Deployment (SPA Merge)**: Vue SPA kini dapat di-build langsung ke folder `public/` Laravel, sehingga frontend dan backend berjalan dalam 1 URL/domain.
+=======
+Fitur-fitur terbaru yang telah ditambahkan berdasarkan saran penguji magang:
+>>>>>>> c532fc27ae5512ddf5e8c430f9befe0fb443d44d
 - **Pembaruan Branding**: Logo sistem telah diperbarui menggunakan Logo Kota Banda Aceh untuk identitas yang lebih resmi.
 - **Filter Lanjutan Admin**: Panel admin kini dilengkapi fitur filter pada daftar feedback dan log kunjungan tamu untuk mempermudah pencarian data.
 - **Dropdown Pengunjung Dinamis**: Form feedback kini menggunakan dropdown pencarian yang hanya menampilkan daftar tamu yang memang benar-benar telah berkunjung.
