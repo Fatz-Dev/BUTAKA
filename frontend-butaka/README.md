@@ -64,13 +64,20 @@ npm install
 ```
 
 ### 3. Konfigurasi Environment
-Buat file .env di root folder (opsional, default menggunakan localhost:8000):
+Terdapat 2 file environment:
+
+**`.env`** — untuk development (sudah dibuat otomatis):
 ```env
-VITE_API_BASE_URL=http://localhost:8000/api
+VITE_API_BASE_URL=http://127.0.0.1:8000/api
+```
+
+**`.env.production`** — untuk production build (Single URL):
+```env
+VITE_API_BASE_URL=/api
 ```
 
 ### 4. Jalankan Development Server
-Mulai aplikasi dalam mode pengembangan:
+Mulai aplikasi dalam mode pengembangan (2 server terpisah):
 ```bash
 npm run dev
 ```
@@ -97,8 +104,10 @@ frontend-butaka/
 │       ├── admin/          # Panel Khusus Admin
 │       ├── receptionist/   # Panel Khusus Resepsionis
 │       └── LandingPage.vue # Halaman Publik
+├── .env                    # Environment development
+├── .env.production         # Environment production (baseURL: /api)
 ├── package.json            # Daftar dependency dan scripts
-└── vite.config.ts          # Konfigurasi Vite
+└── vite.config.ts          # Konfigurasi Vite (build ke backend/public)
 ```
 
 ---
@@ -117,21 +126,30 @@ Aplikasi juga dilengkapi dengan halaman Error 404 otomatis jika pengguna mengaks
 
 ---
 
-## Build untuk Produksi
+## Build untuk Produksi (Single URL Deployment)
 
-Jika ingin melakukan kompilasi file untuk deployment:
+Frontend dapat di-build langsung ke `public/` Laravel sehingga **1 URL** melayani frontend + API:
 
-1. Jalankan perintah build:
+### 1. Build Vue
 ```bash
 npm run build
 ```
 
-2. Hasil build akan berada di dalam folder `dist/`.
+Hasil build otomatis masuk ke `../backend-butaka/public/` (dikonfigurasi di `vite.config.ts`).
+File Laravel (`index.php`, `.htaccess`) **tidak akan terhapus** karena opsi `emptyOutDir: false`.
 
-3. Uji hasil build secara lokal:
+### 2. Jalankan Laravel
 ```bash
-npm run preview
+cd ../backend-butaka
+php artisan serve
 ```
+
+Akses `http://localhost:8000` — Vue SPA + API dalam 1 URL.
+
+### Catatan
+- Environment production menggunakan `VITE_API_BASE_URL=/api` (relative path, tanpa CORS).
+- Route catch-all di `web.php` Laravel mengarahkan semua URL non-`/api` ke Vue SPA.
+- Mode development tetap bisa berjalan terpisah (`npm run dev` + `php artisan serve`).
 
 ---
 

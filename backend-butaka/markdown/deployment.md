@@ -1,6 +1,6 @@
-# Panduan Deployment Produksi - Backend Butaka
+# Panduan Deployment Produksi - BuTaKa
 
-Dokumen ini berisi langkah-langkah untuk melakukan deployment **Backend Butaka** (Laravel) ke lingkungan produksi.
+Dokumen ini berisi langkah-langkah untuk melakukan deployment **BuTaKa** (Laravel API + Vue SPA) ke lingkungan produksi. Sistem ini mendukung **Single URL Deployment** di mana frontend dan backend berjalan dalam 1 domain.
 
 ## 1. Persyaratan Server
 
@@ -8,6 +8,7 @@ Pastikan server Anda memenuhi persyaratan berikut:
 - **PHP 8.2** atau lebih tinggi
 - **Ekstensi PHP**: `bcmath`, `ctype`, `curl`, `dom`, `fileinfo`, `filter`, `gd`, `hash`, `iconv`, `json`, `libxml`, `mbstring`, `openssl`, `pcre`, `pdo`, `pdo_mysql` (atau database lain), `session`, `tokenizer`, `xml`, `xmlreader`, `xmlwriter`, `zip`.
 - **Composer 2.x**
+- **Node.js 18+** dan **npm** (untuk build frontend Vue)
 - **Web Server**: Nginx (direkomendasikan) atau Apache
 - **Database**: MySQL 8.0+, PostgreSQL, atau MariaDB
 
@@ -20,11 +21,16 @@ Jalankan perintah berikut di server produksi:
 ### A. Clone & Install Dependensi
 ```bash
 # Clone repository (jika belum)
-git clone <repository-url> backend-butaka
-cd backend-butaka
+git clone <repository-url> BUTAKA
+cd BUTAKA
 
-# Install dependensi PHP untuk produksi
+# Install dependensi PHP (backend)
+cd backend-butaka
 composer install --no-dev --optimize-autoloader
+
+# Install dependensi Node.js (frontend)
+cd ../frontend-butaka
+npm install
 ```
 
 ### B. Konfigurasi Environment
@@ -47,18 +53,27 @@ Pastikan pengaturan berikut diubah di `.env`:
 
 ### C. Database & Migrasi
 ```bash
-# Jalankan migrasi database
+cd backend-butaka
 php artisan migrate --force
 ```
 
-### D. Izin Direktori (Permissions)
+### D. Build Frontend (Single URL)
+Build Vue SPA langsung ke `public/` Laravel:
+```bash
+cd ../frontend-butaka
+npm run build
+```
+Hasil build otomatis masuk ke `backend-butaka/public/`. File Laravel (`index.php`, `.htaccess`) tidak akan terhapus.
+
+### E. Izin Direktori (Permissions)
 Berikan izin baca/tulis ke direktori `storage` dan `bootstrap/cache`:
 ```bash
+cd ../backend-butaka
 sudo chown -R www-data:www-data storage bootstrap/cache
 sudo chmod -R 775 storage bootstrap/cache
 ```
 
-### E. Optimasi Performa
+### F. Optimasi Performa
 Jalankan perintah ini setiap kali melakukan update kode:
 ```bash
 php artisan config:cache
@@ -72,40 +87,71 @@ php artisan view:cache
 
 Berikut adalah contoh konfigurasi Nginx untuk Laravel:
 
+Karena Vue SPA di-build ke `public/` Laravel, **1 server block** melayani semuanya:
+
 ```nginx
 server {
     listen 80;
-    server_name api.yourdomain.com;
+    server_name yourdomain.com;
     root /var/www/backend-butaka/public;
 
     add_header X-Frame-Options "SAMEORIGIN";
     add_header X-XSS-Protection "1; mode=block";
     add_header X-Content-Type-Options "nosniff";
 
-    index index.php;
+    index index.html index.php;
 
     charset utf-8;
 
-    location / {
+    # API routes → Laravel
+    location /api {
         try_files $uri $uri/ /index.php?$query_string;
     }
 
-    location = /favicon.ico { access_log off; log_not_found off; }
-    location = /robots.txt  { access_log off; log_not_found off; }
-
-    error_page 404 /index.php;
-
+    # PHP processing
     location ~ \.php$ {
         fastcgi_pass unix:/var/run/php/php8.2-fpm.sock;
         fastcgi_param SCRIPT_FILENAME $realpath_root$fastcgi_script_name;
         include fastcgi_params;
     }
 
+    # Static files (Vue assets, images, etc)
+    location /assets {
+        try_files $uri =404;
+    }
+
+    # Semua route lain → Vue SPA (index.html)
+    location / {
+        try_files $uri $uri/ /index.html;
+    }
+
+    location = /favicon.ico { access_log off; log_not_found off; }
+    location = /robots.txt  { access_log off; log_not_found off; }
+
     location ~ /\.(?!well-known).* {
         deny all;
     }
 }
 ```
+
+---
+
+## 3b. Konfigurasi Apache / XAMPP
+
+Jika menggunakan Apache (termasuk XAMPP), arahkan DocumentRoot ke `backend-butaka/public/`:
+
+```apache
+<VirtualHost *:80>
+    ServerName butaka.local
+    DocumentRoot "C:/xampp/htdocs/magang/BUTAKA/backend-butaka/public"
+    <Directory "C:/xampp/htdocs/magang/BUTAKA/backend-butaka/public">
+        AllowOverride All
+        Require all granted
+    </Directory>
+</VirtualHost>
+```
+
+Pastikan `mod_rewrite` sudah diaktifkan dan `.htaccess` Laravel sudah ada di `public/`.
 
 ---
 
@@ -138,11 +184,19 @@ Untuk Task Scheduling, tambahkan ke crontab server:
 Setiap ada perubahan kode di repository:
 ```bash
 git pull origin main
+
+# Update backend
+cd backend-butaka
 composer install --no-dev --optimize-autoloader
 php artisan migrate --force
 php artisan config:cache
 php artisan route:cache
 php artisan view:cache
+
+# Rebuild frontend
+cd ../frontend-butaka
+npm install
+npm run build
 ```
 
 ---

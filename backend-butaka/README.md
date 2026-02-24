@@ -12,6 +12,7 @@ API Backend untuk sistem manajemen tamu "BuTaKa" (Buku Tamu Kantor), dibangun me
 - Sistem Feedback: Pengumpulan rating (1-5) dan komentar dari pengunjung, terhubung langsung ke data tamu melalui relasi `visitor_id`.
 - Dashboard Ringkasan: Statistik real-time, tren pengunjung 7 hari terakhir, dan breakdown rating.
 - Manajemen Profil: Ganti password, update info profil, dan upload foto (avatar).
+- Single URL Deployment: Vue SPA dapat di-build ke `public/` Laravel sehingga frontend dan API berjalan dalam 1 domain tanpa konfigurasi CORS.
 
 ---
 
@@ -108,13 +109,36 @@ Jika ingin reset seluruh database dan isi ulang data:
 php artisan migrate:refresh --seed
 ```
 
-### 6. Jalankan Server
+### 6. Jalankan Server (Development)
 
 ```bash
 php artisan serve
 ```
 
 API akan berjalan di `http://localhost:8000`.
+
+### 7. Build Produksi — Single URL (Opsional)
+
+Untuk menjalankan frontend dan backend dalam **1 URL**, build Vue terlebih dahulu:
+
+```bash
+cd ../frontend-butaka
+npm run build
+```
+
+Hasil build otomatis masuk ke `backend-butaka/public/`. Sekarang jalankan Laravel saja:
+
+```bash
+cd ../backend-butaka
+php artisan serve
+```
+
+Akses `http://localhost:8000` — Vue SPA + API dalam 1 URL.
+
+**Catatan:**
+- File Laravel (`index.php`, `.htaccess`) tidak akan terhapus saat build.
+- Route `/{any}` di `web.php` akan mengarahkan semua URL non-API ke Vue SPA.
+- CORS tidak diperlukan lagi karena sudah 1 domain.
 
 ---
 
@@ -213,7 +237,14 @@ backend-butaka/
 │       ├── VisitorSeeder.php     # Faker id_ID, 20 data acak
 │       └── FeedbackSeeder.php    # Relasi ke visitor_id
 ├── routes/
-│   └── api.php                   # Definisi seluruh endpoint API
+│   ├── api.php                   # Definisi seluruh endpoint API
+│   └── web.php                   # Catch-all route untuk Vue SPA
+├── config/
+│   └── cors.php                  # Konfigurasi CORS (dev & production)
+├── public/                       # Document root (+ hasil build Vue)
+│   ├── index.php                 # Entry point Laravel
+│   ├── index.html                # Entry point Vue SPA (hasil build)
+│   └── assets/                   # Bundle JS/CSS Vue (hasil build)
 ├── docker/                       # Konfigurasi Docker
 │   ├── nginx.conf
 │   ├── supervisord.conf
@@ -266,13 +297,6 @@ DB_PASSWORD=<password>
 
 ### Tabel `feedback`
 - id, visitor_id (FK ke visitors), rating (1-5), comment, created_at
-
----
-
-## Dokumentasi API Lengkap
-
-Detail lengkap mengenai setiap endpoint, request body, dan contoh response dapat dilihat pada file:
-[API_DOCUMENTATION.md](./API_DOCUMENTATION.md)
 
 ---
 

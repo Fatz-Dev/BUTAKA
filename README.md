@@ -16,6 +16,7 @@ Fitur utama sistem ini meliputi:
 - Manajemen akun staff (Admin dan Resepsionis).
 
 Fitur-fitur terbaru yang telah ditambahkan:
+- **Single URL Deployment (SPA Merge)**: Vue SPA kini dapat di-build langsung ke folder `public/` Laravel, sehingga frontend dan backend berjalan dalam 1 URL/domain.
 - **Pembaruan Branding**: Logo sistem telah diperbarui menggunakan Logo Kota Banda Aceh untuk identitas yang lebih resmi.
 - **Filter Lanjutan Admin**: Panel admin kini dilengkapi fitur filter pada daftar feedback dan log kunjungan tamu untuk mempermudah pencarian data.
 - **Dropdown Pengunjung Dinamis**: Form feedback kini menggunakan dropdown pencarian yang hanya menampilkan daftar tamu yang memang benar-benar telah berkunjung.
@@ -74,9 +75,27 @@ npm install
 npm run dev
 ```
 
-Aplikasi dapat diakses di:
+**Mode Development (2 server terpisah):**
 - Frontend: `http://localhost:5173`
 - Backend API: `http://localhost:8000`
+
+### Langkah 4: Build Produksi (1 URL)
+
+Untuk menggabungkan frontend dan backend menjadi **1 URL**, cukup build Vue:
+
+```bash
+cd frontend-butaka
+npm run build
+```
+
+Hasil build otomatis masuk ke `backend-butaka/public/`. Lalu jalankan Laravel saja:
+
+```bash
+cd ../backend-butaka
+php artisan serve
+```
+
+Akses `http://localhost:8000` — Vue SPA + API dalam 1 URL.
 
 ---
 
